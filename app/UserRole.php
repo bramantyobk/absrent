@@ -16,4 +16,16 @@ enum UserRole: string
             self::Admin => 'Admin',
         };
     }
+
+    /**
+     * Class badge Bootstrap untuk menampilkan role.
+     */
+    public function badgeClass(): string
+    {
+        return match ($this) {
+            self::User => 'text-bg-secondary',
+            self::Operator => 'text-bg-info',
+            self::Admin => 'text-bg-primary',
+        };
+    }
 }

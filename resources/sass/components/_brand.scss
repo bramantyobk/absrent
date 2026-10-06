@@ -1,0 +1,25 @@
+// <x-brand>: logo + nama aplikasi
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.72px;
+    color: var(--primary);
+
+    &:hover {
+        color: var(--primary);
+    }
+
+    // Logo SVG punya latar hampir putih, multiply membuatnya menyatu dengan latar halaman
+    img {
+        mix-blend-mode: multiply;
+    }
+}
+
+.brand-logo-lg {
+    font-size: 32px;
+    letter-spacing: -0.96px;
+}

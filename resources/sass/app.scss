@@ -1,28 +1,55 @@
-// Design tokens dari ed-rent-admin-html (template-blade/tokens.css)
 $primary: #3563e9;
-$body-color: #1a202c;
-$body-secondary-color: #596780;
-$body-tertiary-color: #90a3bf;
-$body-bg: #f6f7f9;
-$border-color: #e5e9f2;
-$font-family-sans-serif: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+$text-dark: #1a202c;
+$text-secondary: #596780;
+$text-muted: #90a3bf;
+$bg-page: #f6f7f9;
+$divider: #e5e9f2;
+
+// Variabel Bootstrap (harus sebelum import Bootstrap)
+$body-color: $text-dark;
+$body-secondary-color: $text-secondary;
+$body-tertiary-color: $text-muted;
+$body-bg: $bg-page;
+$border-color: $divider;
+$font-family-sans-serif:
+    "Plus Jakarta Sans",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 
 @import "bootstrap/scss/bootstrap";
 
+// CSS variable global (dari ed-rent-admin-html/template-blade/tokens.css)
 :root {
     --primary: #{$primary};
-    --text-dark: #1a202c;
-    --text-secondary: #596780;
-    --text-muted: #90a3bf;
-    --bg-page: #f6f7f9;
+    --text-dark: #{$text-dark};
+    --text-secondary: #{$text-secondary};
+    --text-muted: #{$text-muted};
+    --bg-page: #{$bg-page};
     --bg-page-mobile: #fafbff;
-    --divider: #e5e9f2;
+    --divider: #{$divider};
     --card-shadow: 0 4px 16px 0 rgba(149, 157, 165, 0.15);
     --card-shadow-sm: 0 4px 8px 0 rgba(149, 157, 165, 0.15);
     --sidebar-width: 288px;
+    --sidebar-width-collapsed: 96px;
     --topnav-height: 100px;
 }
 
 a {
     text-decoration: none;
 }
+
+// Partial memakai mixin Bootstrap, jadi di-import setelah Bootstrap.
+// Satu komponen Blade = satu partial (nama sama).
+@import "components/brand";
+@import "layout/dashboard/dashboard-topbar";
+@import "layout/dashboard/dashboard-sidebar";
+@import "layout/dashboard/dashboard-main";
+@import "layout/dashboard/dashboard-mobile";
+@import "components/card";
+@import "components/chart";
+@import "components/detail-row";
+@import "components/transaction-item";
+@import "components/status-badge";
+@import "components/users-table";

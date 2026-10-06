@@ -61,4 +61,41 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class, 'assigned_operator_id');
     }
+
+    /**
+     * @return HasMany<Transaction, $this>
+     */
+    public function verifiedTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'verified_by');
+    }
+
+    /**
+     * @return HasMany<CancellationRequest, $this>
+     */
+    public function handledCancellationRequests(): HasMany
+    {
+        return $this->hasMany(CancellationRequest::class, 'handled_by');
+    }
+
+    /**
+     * Apakah user punya riwayat (pesanan, verifikasi, dll) sehingga tidak aman dihapus.
+     */
+    public function hasHistory(): bool
+    {
+        return $this->orders()->exists()
+            || $this->assignedOrders()->exists()
+            || $this->verifiedTransactions()->exists()
+            || $this->handledCancellationRequests()->exists();
+    }
+
+    /**
+     * Normalisasi nomor WhatsApp ke format 62xxxxxxxxxx (08xx menjadi 628xx).
+     */
+    public static function normalizePhone(?string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        return str_starts_with($digits, '0') ? '62'.substr($digits, 1) : $digits;
+    }
 }

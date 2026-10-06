@@ -20,4 +20,18 @@ enum TransactionStatus: string
             self::Cancelled => 'Dibatalkan',
         };
     }
+
+    /**
+     * Class CSS badge status (lihat resources/sass/_dashboard.scss).
+     */
+    public function badgeClass(): string
+    {
+        return match ($this) {
+            self::Pending => 'status-pending',
+            self::Verifying => 'status-progress',
+            self::Paid => 'status-lunas',
+            self::Failed => 'status-batal',
+            self::Cancelled => 'status-batal',
+        };
+    }
 }

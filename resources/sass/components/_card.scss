@@ -1,0 +1,25 @@
+// Kartu dashboard, judul kartu, pemisah, dan tautan 'lihat semua'
+
+.card-dash-user {
+    background-color: #fff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+}
+
+.card-heading {
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.6px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--divider);
+    margin: 0;
+}
+
+.link-see-all {
+    font-weight: 500;
+    font-size: 12px;
+}

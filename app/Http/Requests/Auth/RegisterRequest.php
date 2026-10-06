@@ -22,13 +22,7 @@ class RegisterRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $phone = preg_replace('/\D+/', '', (string) $this->input('phone'));
-
-        if (str_starts_with($phone, '0')) {
-            $phone = '62'.substr($phone, 1);
-        }
-
-        $this->merge(['phone' => $phone]);
+        $this->merge(['phone' => User::normalizePhone($this->input('phone'))]);
     }
 
     /**
