@@ -1,0 +1,18 @@
+// Tabel pengguna (dashboard/users)
+
+.users-table {
+    --bs-table-bg: transparent;
+    --bs-table-cell-padding-x: 0.5rem;
+
+    thead th {
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: -0.24px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    // Beri ruang agar tabel tetap terbaca (scroll horizontal) di layar kecil
+    min-width: 560px;
+}
