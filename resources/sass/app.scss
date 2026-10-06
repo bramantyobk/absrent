@@ -1,0 +1,28 @@
+// Design tokens dari ed-rent-admin-html (template-blade/tokens.css)
+$primary: #3563e9;
+$body-color: #1a202c;
+$body-secondary-color: #596780;
+$body-tertiary-color: #90a3bf;
+$body-bg: #f6f7f9;
+$border-color: #e5e9f2;
+$font-family-sans-serif: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+@import "bootstrap/scss/bootstrap";
+
+:root {
+    --primary: #{$primary};
+    --text-dark: #1a202c;
+    --text-secondary: #596780;
+    --text-muted: #90a3bf;
+    --bg-page: #f6f7f9;
+    --bg-page-mobile: #fafbff;
+    --divider: #e5e9f2;
+    --card-shadow: 0 4px 16px 0 rgba(149, 157, 165, 0.15);
+    --card-shadow-sm: 0 4px 8px 0 rgba(149, 157, 165, 0.15);
+    --sidebar-width: 288px;
+    --topnav-height: 100px;
+}
+
+a {
+    text-decoration: none;
+}
