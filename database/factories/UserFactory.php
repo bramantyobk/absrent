@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\UserRole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -27,8 +28,12 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => '628'.fake()->numerify('#########'),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'role' => UserRole::User,
+            'is_active' => true,
+            'is_on_duty' => false,
             'remember_token' => Str::random(10),
         ];
     }
@@ -40,6 +45,34 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Admin,
+        ]);
+    }
+
+    public function operator(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Operator,
+        ]);
+    }
+
+    public function onDuty(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_on_duty' => true,
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
         ]);
     }
 }
