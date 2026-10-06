@@ -1,0 +1,12 @@
+// <x-dashboard.topbar>: navbar atas desktop
+
+.top-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    height: var(--topnav-height);
+    margin-left: var(--sidebar-width);
+    border-bottom: 1px solid rgba(195, 212, 233, 0.4);
+    background-color: #fff;
+    transition: margin-left 0.2s ease;
+}

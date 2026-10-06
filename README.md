@@ -123,7 +123,7 @@ Aturan autentikasi yang sudah berlaku:
 
 Alur kerja tim: `main` untuk rilis, `dev` sebagai branch gabungan. Jangan commit langsung ke `dev`, kerjakan di branch sendiri lalu ajukan Pull Request ke `dev`.
 
-> Contoh branch sendiri pakai format `feat/<nama>-<fitur>`.
+> Contoh branch sendiri pakai format `<nama>-<fitur>`.
 
 1. Ambil `dev` terbaru:
 
@@ -135,7 +135,7 @@ Alur kerja tim: `main` untuk rilis, `dev` sebagai branch gabungan. Jangan commit
 2. Buat branch kerja dari `dev` (sebelum mengubah kode):
 
     ```bash
-    git checkout -b feat/bram-login
+    git checkout -b bram-login
     ```
 
 3. Cek file yang berubah. Pastikan `.env` tidak muncul:
@@ -161,7 +161,7 @@ Alur kerja tim: `main` untuk rilis, `dev` sebagai branch gabungan. Jangan commit
 6. Push branch ke GitHub contoh:
 
     ```bash
-    git push -u origin feat/bram-login
+    git push -u origin bram-login
     ```
 
 7. Buat Pull Request dengan target branch `dev` (bukan `main`). Pilih salah satu:

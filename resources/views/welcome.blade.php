@@ -4,12 +4,13 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ config('app.name', 'ABSRENT') }}</title>
+        <x-favicon />
         @fonts
         @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     </head>
     <body>
         <main class="container py-5">
-            <h1 class="fw-bold text-primary">{{ config('app.name', 'ABSRENT') }}</h1>
+            <x-brand :size="56" class="brand-logo-lg mb-3" />
             <p class="text-body-secondary">Aplikasi sewa kendaraan.</p>
 
             @auth

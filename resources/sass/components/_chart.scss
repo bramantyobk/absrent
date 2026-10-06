@@ -1,0 +1,66 @@
+// <x-dashboard.doughnut-card> dan wadah grafik batang
+
+.chart-wrap {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+}
+
+.chart-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+
+    strong {
+        display: block;
+        font-weight: 700;
+        font-size: 24px;
+        letter-spacing: -0.72px;
+    }
+
+    span {
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+}
+
+.chart-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: -0.28px;
+        padding: 6px 0;
+    }
+
+    .legend-name {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-muted);
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+}
+
+.bar-chart-wrap {
+    position: relative;
+    height: 240px;
+}

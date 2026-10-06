@@ -1,0 +1,18 @@
+// <x-dashboard.mobile-header> dan <x-dashboard.mobile-menu>
+
+.mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background-color: #fff;
+    padding: 12px 16px;
+    box-shadow: var(--header-shadow-mobile, 0 8px 12px 0 rgba(149, 157, 165, 0.2));
+}
+
+.mobile-offcanvas {
+    --bs-offcanvas-bg: #fff;
+
+    .sidebar-link {
+        padding-left: 0;
+    }
+}

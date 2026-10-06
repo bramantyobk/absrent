@@ -1,0 +1,32 @@
+// Baris detail (Jumlah Kendaraan) dan total pendapatan
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: -0.32px;
+
+    strong {
+        font-weight: 700;
+    }
+}
+
+.total-label {
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.6px;
+}
+
+.total-sublabel {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.total-value {
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.72px;
+}

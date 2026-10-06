@@ -1,0 +1,24 @@
+.dashboard-main {
+    padding: 24px 16px;
+    transition: margin-left 0.2s ease;
+
+    @include media-breakpoint-up(lg) {
+        margin-left: var(--sidebar-width);
+        padding: 32px;
+    }
+
+    @include media-breakpoint-up(xl) {
+        padding: 40px 60px;
+    }
+}
+
+.page-title {
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.72px;
+
+    @include media-breakpoint-up(lg) {
+        font-size: 32px;
+        letter-spacing: -0.96px;
+    }
+}

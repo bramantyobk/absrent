@@ -67,4 +67,9 @@ class Order extends Model
     {
         return $this->hasMany(CancellationRequest::class);
     }
+
+    public function formattedTotalPrice(): string
+    {
+        return 'Rp'.number_format($this->total_price, 0, ',', '.');
+    }
 }
