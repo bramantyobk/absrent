@@ -10,8 +10,25 @@
     <body>
         <main class="container py-5">
             <h1 class="fw-bold text-primary">{{ config('app.name', 'ABSRENT') }}</h1>
-            <p class="text-body-secondary">Aplikasi sewa kendaraan. Konfigurasi Bootstrap 5.3 aktif.</p>
-            <a href="#" class="btn btn-primary">Mulai</a>
+            <p class="text-body-secondary">Aplikasi sewa kendaraan.</p>
+
+            @auth
+                <p>Masuk sebagai <strong>{{ auth()->user()->name }}</strong>.</p>
+                <div class="d-flex gap-2">
+                    @if (auth()->user()->isStaff())
+                        <a href="{{ route('dashboard') }}" class="btn btn-primary">Dashboard</a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-secondary">Keluar</button>
+                    </form>
+                </div>
+            @else
+                <div class="d-flex gap-2">
+                    <a href="{{ route('login') }}" class="btn btn-primary">Masuk</a>
+                    <a href="{{ route('register') }}" class="btn btn-outline-primary">Daftar</a>
+                </div>
+            @endauth
         </main>
     </body>
 </html>
