@@ -29,6 +29,16 @@ abstract class VehicleRequest extends FormRequest
     }
 
     /**
+     * Data kendaraan tervalidasi tanpa field foto, yang ditangani terpisah.
+     *
+     * @return array<string, mixed>
+     */
+    public function vehicleAttributes(): array
+    {
+        return $this->safe()->except(['photo', 'remove_photo']);
+    }
+
+    /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array

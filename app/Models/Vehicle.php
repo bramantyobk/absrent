@@ -6,6 +6,8 @@ use App\Services\VehiclePhotoStorage;
 use App\VehicleType;
 use Database\Factories\VehicleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +29,24 @@ class Vehicle extends Model
             'type' => VehicleType::class,
             'is_available' => 'boolean',
         ];
+    }
+
+    /**
+     * @param  Builder<Vehicle>  $query
+     * @param  array{search?: ?string, type?: ?string, status?: ?string}  $filters
+     */
+    #[Scope]
+    protected function filter(Builder $query, array $filters): void
+    {
+        $query
+            ->when($filters['search'] ?? null, fn (Builder $query, string $search) => $query->where(
+                fn (Builder $query) => $query
+                    ->where('brand', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%")
+                    ->orWhere('plate_number', 'like', "%{$search}%")
+            ))
+            ->when($filters['type'] ?? null, fn (Builder $query, string $type) => $query->where('type', $type))
+            ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('is_available', $status === 'available'));
     }
 
     /**

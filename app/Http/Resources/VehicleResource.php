@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Models\Vehicle;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin Vehicle
+ */
+class VehicleResource extends JsonResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'brand' => $this->brand,
+            'model' => $this->model,
+            'plate_number' => $this->plate_number,
+            'type' => $this->type->value,
+            'type_label' => $this->type->label(),
+            'year' => $this->year,
+            'color' => $this->color,
+            'price_per_day' => $this->price_per_day,
+            'price_per_hour' => $this->price_per_hour,
+            'photo_url' => $this->photo_url,
+            'is_available' => $this->is_available,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
+    }
+}
