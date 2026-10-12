@@ -18,6 +18,8 @@ function vehiclePayload(array $overrides = []): array
         'price_per_day' => 85000,
         'price_per_hour' => 9000,
         'is_available' => true,
+        'drive_type' => 'automatic',
+        'energy_capacity' => 5.5,
     ];
 }
 

@@ -35,10 +35,7 @@ class DashboardController extends Controller
 
         return [
             'total' => Vehicle::count(),
-            'available' => Vehicle::query()
-                ->where('is_available', true)
-                ->whereDoesntHave('orderItems', $withStatus(OrderStatus::Rented))
-                ->count(),
+            'available' => Vehicle::query()->availableAt(now())->count(),
             'booked' => Vehicle::query()->whereHas('orderItems', $withStatus(OrderStatus::Booking))->count(),
             'rented' => Vehicle::query()->whereHas('orderItems', $withStatus(OrderStatus::Rented))->count(),
         ];

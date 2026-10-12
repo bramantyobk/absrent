@@ -17,3 +17,16 @@
     border: 1px solid var(--divider);
     background-color: var(--bg-page);
 }
+
+// Daftar informasi pada detail kendaraan
+.vehicle-detail-list {
+    dt {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    dd {
+        margin-bottom: 0.75rem;
+    }
+}

@@ -30,3 +30,7 @@ Homestead.yaml
 Thumbs.db
 absrent-prd.md
 PROJECT_BRIEF.md
+.agents
+boost.json
+boost.lock
+implementation-log.md

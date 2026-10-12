@@ -11,6 +11,7 @@ enum OrderStatus: string
     case Cancelled = 'cancelled';
     case Failed = 'failed';
     case Refunded = 'refunded';
+    case Stolen = 'stolen';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum OrderStatus: string
             self::Cancelled => 'Dibatalkan',
             self::Failed => 'Gagal',
             self::Refunded => 'Refund',
+            self::Stolen => 'Dicuri',
         };
     }
 
@@ -38,6 +40,17 @@ enum OrderStatus: string
             self::Cancelled => 'status-batal',
             self::Failed => 'status-batal',
             self::Refunded => 'status-refund',
+            self::Stolen => 'status-batal',
         };
+    }
+
+    /**
+     * Status pesanan yang menahan jadwal kendaraan.
+     *
+     * @return array<int, self>
+     */
+    public static function holdingSchedule(): array
+    {
+        return [self::Pending, self::Booking, self::Rented];
     }
 }

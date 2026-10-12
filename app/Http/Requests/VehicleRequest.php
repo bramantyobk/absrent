@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\VehicleDriveType;
 use App\VehicleType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -54,6 +55,9 @@ abstract class VehicleRequest extends FormRequest
             'price_per_hour' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.self::MAX_PHOTO_KB, 'dimensions:max_width=8000,max_height=8000'],
             'is_available' => ['boolean'],
+            'drive_type' => ['required', Rule::enum(VehicleDriveType::class)],
+            'energy_capacity' => ['required', 'numeric', 'gt:0', 'max:9999.9', 'decimal:0,1'],
+            'description' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
@@ -64,6 +68,10 @@ abstract class VehicleRequest extends FormRequest
     {
         return [
             'plate_number.unique' => 'Plat nomor sudah terdaftar.',
+            'drive_type.required' => 'Tipe kendaraan wajib dipilih.',
+            'energy_capacity.required' => 'Kapasitas energi wajib diisi.',
+            'energy_capacity.gt' => 'Kapasitas energi harus lebih dari 0.',
+            'energy_capacity.decimal' => 'Kapasitas energi maksimal satu angka di belakang koma.',
             'photo.max' => 'Ukuran foto maksimal 1 MB.',
             'photo.image' => 'File harus berupa gambar.',
             'photo.mimes' => 'Foto harus berformat JPG, PNG, atau WebP.',

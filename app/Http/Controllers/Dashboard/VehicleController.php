@@ -10,6 +10,10 @@ use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Http\Requests\VehicleFilterRequest;
 use App\Models\Vehicle;
+use App\Services\VehicleFreeWindows;
+use App\Services\VehicleTimeline;
+use App\VehicleDriveType;
+use App\VehicleScheduleType;
 use App\VehicleType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -23,6 +27,7 @@ class VehicleController extends Controller
 
         $vehicles = Vehicle::query()
             ->filter($filters)
+            ->withDisplayStatus()
             ->orderBy('brand')
             ->orderBy('model')
             ->orderBy('id')
@@ -40,7 +45,10 @@ class VehicleController extends Controller
     {
         Gate::authorize('create', Vehicle::class);
 
-        return view('dashboard.vehicles.create', ['types' => VehicleType::cases()]);
+        return view('dashboard.vehicles.create', [
+            'types' => VehicleType::cases(),
+            'driveTypes' => VehicleDriveType::cases(),
+        ]);
     }
 
     public function store(StoreVehicleRequest $request, CreateVehicle $createVehicle): RedirectResponse
@@ -59,6 +67,20 @@ class VehicleController extends Controller
         return view('dashboard.vehicles.edit', [
             'vehicle' => $vehicle,
             'types' => VehicleType::cases(),
+            'driveTypes' => VehicleDriveType::cases(),
+        ]);
+    }
+
+    public function show(Vehicle $vehicle, VehicleTimeline $timeline, VehicleFreeWindows $freeWindows): View
+    {
+        Gate::authorize('view', $vehicle);
+
+        return view('dashboard.vehicles.show', [
+            'vehicle' => $vehicle,
+            'status' => $vehicle->displayStatus(),
+            'timeline' => $timeline->for($vehicle),
+            'freeWindows' => $freeWindows->for($vehicle),
+            'scheduleTypes' => VehicleScheduleType::cases(),
         ]);
     }
 
@@ -81,7 +103,7 @@ class VehicleController extends Controller
         Gate::authorize('delete', $vehicle);
 
         if (! $deleteVehicle->handle($vehicle)) {
-            return back()->with('error', 'Kendaraan memiliki riwayat pesanan. Tandai sebagai tidak tersedia sebagai gantinya.');
+            return back()->with('error', 'Kendaraan memiliki riwayat pesanan. Sembunyikan dari katalog sebagai gantinya.');
         }
 
         return redirect()

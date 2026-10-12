@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Vehicle;
+use App\VehicleDriveType;
 use App\VehicleType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -71,6 +72,10 @@ class VehicleFactory extends Factory
             $type === VehicleType::Motorcycle ? self::MOTORCYCLES : self::CARS
         );
 
+        $driveType = $type === VehicleType::Motorcycle
+            ? fake()->randomElement([VehicleDriveType::Automatic, VehicleDriveType::Manual, VehicleDriveType::Electric])
+            : fake()->randomElement([VehicleDriveType::Automatic, VehicleDriveType::Manual]);
+
         return [
             'brand' => $brand,
             'model' => $model,
@@ -82,6 +87,10 @@ class VehicleFactory extends Factory
             'price_per_hour' => (int) round($pricePerDay / 10, -3),
             'photo' => null,
             'is_available' => true,
+            'drive_type' => $driveType,
+            'energy_capacity' => $driveType === VehicleDriveType::Electric ? 3.0 : ($type === VehicleType::Motorcycle ? 5.5 : 45.0),
+            'description' => fake()->optional()->sentence(),
+            'odometer_km' => fake()->numberBetween(500, 40000),
         ];
     }
 }

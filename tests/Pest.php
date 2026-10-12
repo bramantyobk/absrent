@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Vehicle;
+use App\OrderStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +48,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Membuat pesanan berstatus tertentu yang menahan kendaraan pada rentang waktu yang diberikan.
+ */
+function holdVehicle(Vehicle $vehicle, OrderStatus $status, string $startAt, string $endAt): OrderItem
 {
-    // ..
+    return OrderItem::factory()
+        ->for(Order::factory()->create(['status' => $status]), 'order')
+        ->for($vehicle, 'vehicle')
+        ->create(['start_at' => $startAt, 'end_at' => $endAt]);
 }

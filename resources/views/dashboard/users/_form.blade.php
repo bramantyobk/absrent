@@ -105,7 +105,7 @@
                         class="form-check-input" @checked($isOnDuty)>
                     <label for="is_on_duty" class="form-check-label">Sedang bertugas</label>
                 </div>
-                <div class="form-text">Operator yang bertugas menerima konfirmasi pembayaran lewat WhatsApp (rotator).</div>
+                <div class="form-text">Operator yang bertugas</div>
             </div>
         </div>
     </div>

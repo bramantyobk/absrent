@@ -1,10 +1,11 @@
 {{--
     Form bersama untuk tambah dan ubah kendaraan.
-    Variabel: $action, $method (POST/PUT), $types, $vehicle (opsional, saat ubah).
+    Variabel: $action, $method (POST/PUT), $types (kategori), $driveTypes (tipe), $vehicle (opsional, saat ubah).
 --}}
 @php
     $editing = isset($vehicle);
     $currentType = old('type', isset($vehicle) ? $vehicle->type->value : \App\VehicleType::Motorcycle->value);
+    $currentDriveType = old('drive_type', isset($vehicle) ? $vehicle->drive_type?->value : null);
     $isAvailable = (bool) old('is_available', $vehicle->is_available ?? true);
 @endphp
 
@@ -44,13 +45,41 @@
             </div>
 
             <div class="col-12 col-md-6">
-                <label for="type" class="form-label">Tipe</label>
+                <label for="type" class="form-label">Kategori</label>
                 <select id="type" name="type" class="form-select @error('type') is-invalid @enderror" required>
                     @foreach ($types as $type)
                         <option value="{{ $type->value }}" @selected($currentType === $type->value)>{{ $type->label() }}</option>
                     @endforeach
                 </select>
                 @error('type')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label for="drive_type" class="form-label">Tipe</label>
+                <select id="drive_type" name="drive_type" class="form-select @error('drive_type') is-invalid @enderror" required
+                    data-drive-type-select>
+                    <option value="">Pilih tipe</option>
+                    @foreach ($driveTypes as $driveType)
+                        <option value="{{ $driveType->value }}" data-unit="{{ $driveType->energyUnit() }}"
+                            @selected($currentDriveType === $driveType->value)>{{ $driveType->label() }}</option>
+                    @endforeach
+                </select>
+                @error('drive_type')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label for="energy_capacity" class="form-label">
+                    Kapasitas energi (<span data-energy-unit>{{ ($vehicle->drive_type ?? null)?->energyUnit() ?? 'liter' }}</span>)
+                </label>
+                <input type="number" id="energy_capacity" name="energy_capacity" step="0.1" min="0.1"
+                    value="{{ old('energy_capacity', $vehicle->energy_capacity ?? '') }}"
+                    class="form-control @error('energy_capacity') is-invalid @enderror" required>
+                <div class="form-text">Liter untuk Matic/Manual, kWh untuk Listrik.</div>
+                @error('energy_capacity')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
@@ -93,6 +122,27 @@
             </div>
 
             <div class="col-12">
+                <label for="description" class="form-label">Deskripsi</label>
+                <textarea id="description" name="description" rows="3" maxlength="2000"
+                    class="form-control @error('description') is-invalid @enderror">{{ old('description', $vehicle->description ?? '') }}</textarea>
+                @error('description')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            @unless ($editing)
+                <div class="col-12 col-md-6">
+                    <label for="odometer_km" class="form-label">Odometer awal (km)</label>
+                    <input type="number" id="odometer_km" name="odometer_km" min="0" value="{{ old('odometer_km') }}"
+                        class="form-control @error('odometer_km') is-invalid @enderror">
+                    <div class="form-text">Opsional. Perubahan berikutnya lewat tombol Perbarui odometer di detail kendaraan.</div>
+                    @error('odometer_km')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            @endunless
+
+            <div class="col-12">
                 <label for="photo" class="form-label">Foto kendaraan</label>
                 <div class="d-flex flex-wrap align-items-start gap-3">
                     <img src="{{ $editing ? $vehicle->photo_url : asset('images/vehicle-placeholder.png') }}" alt="Pratinjau foto"
@@ -123,8 +173,9 @@
                 <div class="form-check form-switch">
                     <input type="checkbox" role="switch" id="is_available" name="is_available" value="1"
                         class="form-check-input" @checked($isAvailable)>
-                    <label for="is_available" class="form-check-label">Tersedia untuk disewa</label>
+                    <label for="is_available" class="form-check-label">Tampil di katalog</label>
                 </div>
+                <div class="form-text">Bila dimatikan, unit disembunyikan dari katalog dan tidak dapat dipesan baru. Pesanan dan jadwal servis yang sudah ada tetap berlaku.</div>
             </div>
         </div>
     </div>

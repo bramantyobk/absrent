@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
 use App\Http\Controllers\Dashboard\VehicleController;
+use App\Http\Controllers\Dashboard\VehicleOdometerController;
+use App\Http\Controllers\Dashboard\VehicleScheduleController;
 use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +31,12 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         Route::get('revenue', [DashboardChartController::class, 'revenue'])->name('revenue');
     });
 
-    Route::resource('vehicles', VehicleController::class)->except('show')->names('dashboard.vehicles');
+    Route::resource('vehicles', VehicleController::class)->names('dashboard.vehicles');
+    Route::resource('vehicles.schedules', VehicleScheduleController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->scoped()
+        ->names('dashboard.vehicles.schedules');
+    Route::post('vehicles/{vehicle}/odometer', [VehicleOdometerController::class, 'store'])->name('dashboard.vehicles.odometer.store');
 
     Route::get('users', [UserController::class, 'index'])->name('dashboard.users.index');
 

@@ -18,20 +18,20 @@
                     class="form-control" placeholder="Cari merek, model, atau plat nomor">
             </div>
             <div class="col-6 col-xl-3">
-                <label for="type" class="visually-hidden">Tipe</label>
+                <label for="type" class="visually-hidden">Kategori</label>
                 <select id="type" name="type" class="form-select">
-                    <option value="">Semua tipe</option>
+                    <option value="">Semua kategori</option>
                     @foreach ($types as $type)
                         <option value="{{ $type->value }}" @selected(($filters['type'] ?? null) === $type->value)>{{ $type->label() }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="col-6 col-xl-3">
-                <label for="status" class="visually-hidden">Ketersediaan</label>
+                <label for="status" class="visually-hidden">Katalog</label>
                 <select id="status" name="status" class="form-select">
-                    <option value="">Semua status</option>
-                    <option value="available" @selected(($filters['status'] ?? null) === 'available')>Tersedia</option>
-                    <option value="unavailable" @selected(($filters['status'] ?? null) === 'unavailable')>Tidak tersedia</option>
+                    <option value="">Semua (katalog)</option>
+                    <option value="available" @selected(($filters['status'] ?? null) === 'available')>Tampil di katalog</option>
+                    <option value="unavailable" @selected(($filters['status'] ?? null) === 'unavailable')>Tidak tampil</option>
                 </select>
             </div>
             <div class="col-12 d-flex gap-2">
@@ -58,9 +58,9 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <img src="{{ $vehicle->photo_url }}" alt="" class="vehicle-thumb" loading="lazy">
                                     <div>
-                                        <div class="fw-semibold">{{ $vehicle->brand }} {{ $vehicle->model }}</div>
+                                        <a href="{{ route('dashboard.vehicles.show', $vehicle) }}" class="fw-semibold text-decoration-none">{{ $vehicle->brand }} {{ $vehicle->model }}</a>
                                         <div class="small text-body-secondary">
-                                            {{ $vehicle->type->label() }} · {{ $vehicle->year }} · {{ $vehicle->color }}
+                                            {{ $vehicle->type->label() }}@if ($vehicle->drive_type) · {{ $vehicle->drive_type->label() }}@endif · {{ $vehicle->year }} · {{ $vehicle->color }}
                                         </div>
                                     </div>
                                 </div>
@@ -68,13 +68,11 @@
                             <td class="text-nowrap">{{ $vehicle->plate_number }}</td>
                             <td class="text-nowrap">Rp{{ number_format($vehicle->price_per_day, 0, ',', '.') }}</td>
                             <td>
-                                @if ($vehicle->is_available)
-                                    <span class="status-badge status-lunas">Tersedia</span>
-                                @else
-                                    <span class="status-badge status-batal">Tidak tersedia</span>
-                                @endif
+                                @php($status = $vehicle->displayStatus())
+                                <span class="status-badge {{ $status->badgeClass() }}">{{ $status->label() }}</span>
                             </td>
                             <td class="text-end text-nowrap">
+                                <a href="{{ route('dashboard.vehicles.show', $vehicle) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
                                 <a href="{{ route('dashboard.vehicles.edit', $vehicle) }}" class="btn btn-sm btn-outline-primary">Ubah</a>
                                 <button type="button" class="btn btn-sm btn-outline-danger"
                                     data-bs-toggle="modal" data-bs-target="#deleteVehicleModal"

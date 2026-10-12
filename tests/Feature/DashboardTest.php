@@ -30,7 +30,7 @@ it('shows vehicle counts based on order status', function () {
     OrderItem::factory()
         ->for(Order::factory()->rented()->create(), 'order')
         ->for($rentedVehicle, 'vehicle')
-        ->create();
+        ->create(['start_at' => now()->subDay(), 'end_at' => now()->addDay()]);
     OrderItem::factory()
         ->for(Order::factory()->booking()->create(), 'order')
         ->for($bookedVehicle, 'vehicle')

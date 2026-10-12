@@ -19,6 +19,8 @@ function validVehicleData(array $overrides = []): array
         'price_per_day' => '85000',
         'price_per_hour' => '9000',
         'is_available' => '1',
+        'drive_type' => 'automatic',
+        'energy_capacity' => '5.5',
     ];
 }
 
@@ -139,6 +141,39 @@ it('removes the new photo when saving the vehicle fails', function () {
     ])))->toThrow(RuntimeException::class);
 
     expect(Storage::disk('public')->allFiles())->toBeEmpty();
+});
+
+it('requires a drive type and energy capacity but keeps the description optional', function (array $overrides, string $field) {
+    $this->actingAs(User::factory()->admin()->create())
+        ->post(route('dashboard.vehicles.store'), validVehicleData($overrides))
+        ->assertSessionHasErrors($field);
+
+    expect(Vehicle::count())->toBe(0);
+})->with([
+    'missing drive type' => [['drive_type' => ''], 'drive_type'],
+    'unknown drive type' => [['drive_type' => 'hybrid'], 'drive_type'],
+    'missing capacity' => [['energy_capacity' => ''], 'energy_capacity'],
+    'zero capacity' => [['energy_capacity' => '0'], 'energy_capacity'],
+    'too many decimals' => [['energy_capacity' => '5.55'], 'energy_capacity'],
+]);
+
+it('stores the new vehicle details and the initial odometer on create only', function () {
+    $this->actingAs(User::factory()->admin()->create());
+
+    $this->post(route('dashboard.vehicles.store'), validVehicleData([
+        'drive_type' => 'electric', 'energy_capacity' => '3.2', 'description' => 'Motor listrik', 'odometer_km' => '120',
+    ]))->assertSessionHasNoErrors();
+
+    $vehicle = Vehicle::sole();
+
+    expect($vehicle->drive_type->value)->toBe('electric')
+        ->and($vehicle->energyCapacityLabel())->toBe('3,2 kWh')
+        ->and($vehicle->description)->toBe('Motor listrik')
+        ->and($vehicle->odometer_km)->toBe(120);
+
+    $this->put(route('dashboard.vehicles.update', $vehicle), validVehicleData(['odometer_km' => '99999']))->assertSessionHasNoErrors();
+
+    expect($vehicle->refresh()->odometer_km)->toBe(120);
 });
 
 it('renders the edit page', function () {

@@ -88,7 +88,7 @@ class VehicleController extends Controller
 
         if (! $deleteVehicle->handle($vehicle)) {
             return response()->json([
-                'message' => 'Kendaraan memiliki riwayat pesanan. Tandai sebagai tidak tersedia sebagai gantinya.',
+                'message' => 'Kendaraan memiliki riwayat pesanan. Sembunyikan dari katalog sebagai gantinya.',
             ], 409);
         }
 

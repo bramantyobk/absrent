@@ -54,3 +54,20 @@ if (document.querySelector('[data-duty-toggle]')) {
 if (document.querySelector('[data-photo-input]')) {
     import('./dashboard-photo-upload');
 }
+
+// Form kendaraan: satuan kapasitas energi mengikuti tipe (liter atau kWh)
+document.querySelectorAll('[data-drive-type-select]').forEach((select) => {
+    const unit = document.querySelector('[data-energy-unit]');
+
+    const syncUnit = () => {
+        unit.textContent = select.selectedOptions[0]?.dataset.unit ?? 'liter';
+    };
+
+    select.addEventListener('change', syncUnit);
+    syncUnit();
+});
+
+// Detail kendaraan: modal jadwal servis dan jendela kosong
+if (document.querySelector('[data-vehicle-detail]')) {
+    import('./dashboard-vehicle-detail');
+}
