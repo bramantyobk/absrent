@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CompanyProfileSeeder::class,
             BankAccountSeeder::class,
             VehicleSeeder::class,
+            EquipmentItemSeeder::class,
             OrderSeeder::class,
         ]);
     }

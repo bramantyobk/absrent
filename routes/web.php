@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
 use App\Http\Controllers\Dashboard\VehicleController;
@@ -37,6 +38,10 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         ->scoped()
         ->names('dashboard.vehicles.schedules');
     Route::post('vehicles/{vehicle}/odometer', [VehicleOdometerController::class, 'store'])->name('dashboard.vehicles.odometer.store');
+
+    Route::resource('equipment', EquipmentItemController::class)
+        ->except(['show', 'destroy'])
+        ->names('dashboard.equipment');
 
     Route::get('users', [UserController::class, 'index'])->name('dashboard.users.index');
 

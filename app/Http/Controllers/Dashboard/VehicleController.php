@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Http\Requests\VehicleFilterRequest;
+use App\Models\EquipmentItem;
 use App\Models\Vehicle;
 use App\Services\VehicleFreeWindows;
 use App\Services\VehicleTimeline;
@@ -81,6 +82,7 @@ class VehicleController extends Controller
             'timeline' => $timeline->for($vehicle),
             'freeWindows' => $freeWindows->for($vehicle),
             'scheduleTypes' => VehicleScheduleType::cases(),
+            'equipment' => EquipmentItem::query()->active()->forCategory($vehicle->type)->ordered()->get(),
         ]);
     }
 

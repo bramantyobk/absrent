@@ -5,6 +5,7 @@
         ['label' => 'Dashboard', 'route' => 'dashboard', 'pattern' => 'dashboard', 'icon' => 'home'],
         ['label' => 'Daftar Pesanan', 'route' => 'dashboard.orders.index', 'pattern' => 'dashboard.orders.*', 'icon' => 'wallet'],
         ['label' => 'Kendaraan', 'route' => 'dashboard.vehicles.index', 'pattern' => 'dashboard.vehicles.*', 'icon' => 'car'],
+        ['label' => 'Perlengkapan', 'route' => 'dashboard.equipment.index', 'pattern' => 'dashboard.equipment.*', 'icon' => 'tools'],
         ['label' => 'Pengguna', 'route' => 'dashboard.users.index', 'pattern' => 'dashboard.users.*', 'icon' => 'users'],
     ];
 @endphp

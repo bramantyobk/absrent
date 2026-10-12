@@ -168,10 +168,26 @@
             </div>
         </div>
 
-        {{-- C. Perlengkapan (menyusul bersama fase 4b) --}}
+        {{-- C. Perlengkapan: daftar baca saja dari master perlengkapan aktif sesuai kategori unit --}}
         <div class="card-dash-user p-4">
-            <h2 class="card-heading">Perlengkapan</h2>
-            <p class="text-body-secondary mb-0">Belum ada perlengkapan untuk kategori {{ $vehicle->type->label() }}.</p>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                <h2 class="card-heading mb-0">Perlengkapan ({{ $vehicle->type->label() }})</h2>
+                <a href="{{ route('dashboard.equipment.index', ['category' => $vehicle->type->value]) }}" class="btn btn-sm btn-outline-secondary">Kelola perlengkapan</a>
+            </div>
+            @forelse ($equipment as $item)
+                @if ($loop->first)
+                    <ul class="list-group list-group-flush">
+                @endif
+                <li class="list-group-item d-flex justify-content-between px-0">
+                    <span>{{ $item->name }}</span>
+                    <span class="text-body-secondary">{{ $item->quantity }}</span>
+                </li>
+                @if ($loop->last)
+                    </ul>
+                @endif
+            @empty
+                <p class="text-body-secondary mb-0">Belum ada perlengkapan aktif untuk kategori {{ $vehicle->type->label() }}.</p>
+            @endforelse
         </div>
     </div>
 
