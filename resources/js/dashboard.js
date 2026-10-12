@@ -49,3 +49,8 @@ if (document.querySelector('[data-duty-toggle]')) {
     import('./dashboard-duty-toggle');
 }
 
+
+// Foto kendaraan: kompres di browser (maks 1 MB) lalu tampilkan pratinjau
+if (document.querySelector('[data-photo-input]')) {
+    import('./dashboard-photo-upload');
+}

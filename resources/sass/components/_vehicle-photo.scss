@@ -1,0 +1,19 @@
+// Foto kendaraan: thumbnail di tabel dan pratinjau di form (dashboard/vehicles)
+
+.vehicle-thumb {
+    width: 72px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: var(--bg-page);
+    flex-shrink: 0;
+}
+
+.vehicle-photo-preview {
+    width: 160px;
+    height: 107px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--divider);
+    background-color: var(--bg-page);
+}

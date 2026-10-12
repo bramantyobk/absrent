@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
+use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         Route::get('order-status', [DashboardChartController::class, 'orderStatus'])->name('order-status');
         Route::get('revenue', [DashboardChartController::class, 'revenue'])->name('revenue');
     });
+
+    Route::resource('vehicles', VehicleController::class)->except('show')->names('dashboard.vehicles');
 
     Route::get('users', [UserController::class, 'index'])->name('dashboard.users.index');
 
