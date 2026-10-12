@@ -14,7 +14,7 @@ class CompanyProfileController extends Controller
     /**
      * Data perusahaan
      *
-     * Satu baris data: nama, alamat, nomor WhatsApp support, dan jam layanan kantor (Senin sampai Minggu). Khusus admin.
+     * Satu baris data: nama, alamat, nomor WhatsApp support, jam layanan kantor (Senin sampai Minggu), dan daftar rekening bank. Khusus admin.
      */
     public function show(): CompanyProfileResource
     {
@@ -22,7 +22,7 @@ class CompanyProfileController extends Controller
 
         Gate::authorize('view', $company);
 
-        return new CompanyProfileResource($company);
+        return new CompanyProfileResource($company->load(['bankAccounts' => fn ($accounts) => $accounts->ordered()]));
     }
 
     /**

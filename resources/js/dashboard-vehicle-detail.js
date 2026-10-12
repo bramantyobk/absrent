@@ -42,7 +42,10 @@ modalElement.addEventListener('show.bs.modal', (event) => {
 
     title.textContent = 'Jadwalkan servis';
     setAction(trigger.dataset.scheduleUrl, 'POST');
-    form.reset();
+    ['start_at', 'end_at', 'note', 'odometer_km'].forEach((name) => {
+        field(name).value = '';
+    });
+    field('type').selectedIndex = 0;
     setRunning(false);
 
     if (trigger.dataset.windowStart) {

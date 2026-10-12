@@ -83,3 +83,8 @@ document.querySelectorAll('[data-hours-row]').forEach((row) => {
         });
     });
 });
+
+// Data perusahaan: modal rekening bank
+if (document.querySelector('[data-bank-accounts]')) {
+    import('./dashboard-bank-accounts');
+}

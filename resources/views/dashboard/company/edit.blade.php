@@ -2,6 +2,13 @@
 
 @section('title', 'Data Perusahaan')
 
+@php
+    $bankErrors = $errors->getBag('bank_account');
+    $bankStoreUrl = route('dashboard.company.bank-accounts.store');
+    $bankAction = old('bank_form_action', $bankStoreUrl);
+    $bankMethod = old('bank_form_method', 'POST');
+@endphp
+
 @section('content')
     @include('dashboard.users._alerts')
 
@@ -100,4 +107,127 @@
             <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">Batal</a>
         </div>
     </form>
+
+    {{-- Rekening bank: berada di luar form di atas karena memakai form modal sendiri --}}
+    <div class="card-custom p-4 mt-4" data-bank-accounts @if ($bankErrors->any()) data-auto-open="bankAccountModal" @endif>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
+            <h2 class="card-heading mb-0">Rekening Bank</h2>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bankAccountModal"
+                data-bank-create data-bank-url="{{ $bankStoreUrl }}">Tambah rekening</button>
+        </div>
+        <p class="small text-body-secondary">
+            Rekening tujuan transfer yang tampil di halaman pembayaran, sesuai urutan di bawah. Rekening tidak dapat dihapus, hanya dinonaktifkan,
+            agar data transaksi tetap valid.
+        </p>
+
+        @if ($bankErrors->any())
+            <div class="alert alert-danger" role="alert">
+                <ul class="mb-0 ps-3">
+                    @foreach ($bankErrors->all() as $message)
+                        <li>{{ $message }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if ($bankAccounts->where('is_active', true)->isEmpty())
+            <div class="alert alert-warning" role="alert">
+                Belum ada rekening aktif. Halaman pembayaran tidak akan menampilkan rekening tujuan.
+            </div>
+        @endif
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 users-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Bank</th>
+                        <th scope="col">Nomor rekening</th>
+                        <th scope="col">Atas nama</th>
+                        <th scope="col">Urutan</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($bankAccounts as $account)
+                        <tr>
+                            <td class="fw-semibold">{{ $account->bank_name }}</td>
+                            <td class="text-nowrap">{{ $account->account_number }}</td>
+                            <td>{{ $account->account_holder }}</td>
+                            <td>{{ $account->sort_order }}</td>
+                            <td>
+                                <span class="status-badge {{ $account->is_active ? 'status-lunas' : 'status-batal' }}">
+                                    {{ $account->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bankAccountModal"
+                                    data-bank-edit
+                                    data-bank-url="{{ route('dashboard.company.bank-accounts.update', $account) }}"
+                                    data-bank-name="{{ $account->bank_name }}"
+                                    data-bank-number="{{ $account->account_number }}"
+                                    data-bank-holder="{{ $account->account_holder }}"
+                                    data-bank-order="{{ $account->sort_order }}"
+                                    data-bank-active="{{ $account->is_active ? '1' : '0' }}">Ubah</button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-body-secondary py-5">Belum ada rekening bank.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bankAccountModal" tabindex="-1" aria-labelledby="bankAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="POST" action="{{ $bankAction }}" class="modal-content" data-bank-form data-store-url="{{ $bankStoreUrl }}" novalidate>
+                @csrf
+                <input type="hidden" name="_method" value="{{ $bankMethod === 'PUT' ? 'PUT' : 'POST' }}" data-bank-method>
+                <input type="hidden" name="bank_form_action" value="{{ $bankAction }}" data-bank-action-field>
+                <input type="hidden" name="bank_form_method" value="{{ $bankMethod }}" data-bank-method-field>
+
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="bankAccountModalLabel" data-bank-title>{{ $bankMethod === 'PUT' ? 'Ubah rekening bank' : 'Tambah rekening bank' }}</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="bank_name" class="form-label">Nama bank</label>
+                        <input type="text" id="bank_name" name="bank_name" value="{{ old('bank_name') }}" maxlength="100" placeholder="BCA"
+                            class="form-control @if ($bankErrors->has('bank_name')) is-invalid @endif" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="account_number" class="form-label">Nomor rekening</label>
+                        <input type="text" id="account_number" name="account_number" value="{{ old('account_number') }}" inputmode="numeric" maxlength="40"
+                            class="form-control @if ($bankErrors->has('account_number')) is-invalid @endif" required>
+                        <div class="form-text">Hanya angka. Spasi dan tanda hubung dihapus otomatis.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="account_holder" class="form-label">Atas nama</label>
+                        <input type="text" id="account_holder" name="account_holder" value="{{ old('account_holder') }}" maxlength="150"
+                            class="form-control @if ($bankErrors->has('account_holder')) is-invalid @endif" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="bank_sort_order" class="form-label">Urutan</label>
+                        <input type="number" id="bank_sort_order" name="sort_order" min="0" value="{{ old('sort_order') }}"
+                            class="form-control @if ($bankErrors->has('sort_order')) is-invalid @endif">
+                        <div class="form-text">Kosongkan untuk menaruh di akhir daftar.</div>
+                    </div>
+                    <input type="hidden" name="is_active" value="0">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" role="switch" id="bank_is_active" name="is_active" value="1" class="form-check-input"
+                            @checked((bool) old('is_active', true))>
+                        <label for="bank_is_active" class="form-check-label">Aktif (tampil di halaman pembayaran)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection

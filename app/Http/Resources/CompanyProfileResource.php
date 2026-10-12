@@ -22,6 +22,7 @@ class CompanyProfileResource extends JsonResource
             'address' => $this->address,
             'support_whatsapp' => $this->support_whatsapp,
             'operating_hours' => $this->operatingHours(),
+            'bank_accounts' => BankAccountResource::collection($this->whenLoaded('bankAccounts')),
             'updated_at' => $this->updated_at,
         ];
     }

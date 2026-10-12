@@ -21,6 +21,7 @@ class CompanyProfileController extends Controller
         return view('dashboard.company.edit', [
             'company' => $company,
             'hours' => $company->operatingHours(),
+            'bankAccounts' => $company->bankAccounts()->ordered()->get(),
         ]);
     }
 

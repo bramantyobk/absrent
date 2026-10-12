@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Dashboard\BankAccountController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -49,6 +50,10 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
     Route::middleware('role:admin')->group(function () {
         Route::get('company', [CompanyProfileController::class, 'edit'])->name('dashboard.company.edit');
         Route::put('company', [CompanyProfileController::class, 'update'])->name('dashboard.company.update');
+        Route::resource('company/bank-accounts', BankAccountController::class)
+            ->only(['store', 'update'])
+            ->parameters(['bank-accounts' => 'bank_account'])
+            ->names('dashboard.company.bank-accounts');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
     });

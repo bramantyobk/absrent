@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Database\Factories\BankAccountFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +25,26 @@ class BankAccount extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Rekening yang tampil di halaman pembayaran.
+     *
+     * @param  Builder<BankAccount>  $query
+     */
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->where('is_active', true);
+    }
+
+    /**
+     * @param  Builder<BankAccount>  $query
+     */
+    #[Scope]
+    protected function ordered(Builder $query): void
+    {
+        $query->orderBy('sort_order')->orderBy('id');
     }
 
     /**

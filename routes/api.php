@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
+use App\Http\Controllers\Api\V1\Dashboard\BankAccountController;
 use App\Http\Controllers\Api\V1\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Api\V1\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleAvailabilityController;
@@ -36,6 +37,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::middleware('role:admin')->group(function () {
             Route::get('company', [CompanyProfileController::class, 'show'])->name('company.show');
             Route::put('company', [CompanyProfileController::class, 'update'])->name('company.update');
+            Route::apiResource('company/bank-accounts', BankAccountController::class)
+                ->except('destroy')
+                ->parameters(['bank-accounts' => 'bank_account'])
+                ->names('company.bank-accounts');
         });
     });
 });
