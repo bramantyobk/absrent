@@ -71,3 +71,15 @@ document.querySelectorAll('[data-drive-type-select]').forEach((select) => {
 if (document.querySelector('[data-vehicle-detail]')) {
     import('./dashboard-vehicle-detail');
 }
+
+// Data perusahaan: jam buka dan tutup hanya aktif untuk hari yang buka
+document.querySelectorAll('[data-hours-row]').forEach((row) => {
+    const toggle = row.querySelector('[data-hours-toggle]');
+    const times = row.querySelectorAll('[data-hours-time]');
+
+    toggle.addEventListener('change', () => {
+        times.forEach((input) => {
+            input.disabled = !toggle.checked;
+        });
+    });
+});

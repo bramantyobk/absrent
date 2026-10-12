@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
@@ -46,6 +47,8 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
     Route::get('users', [UserController::class, 'index'])->name('dashboard.users.index');
 
     Route::middleware('role:admin')->group(function () {
+        Route::get('company', [CompanyProfileController::class, 'edit'])->name('dashboard.company.edit');
+        Route::put('company', [CompanyProfileController::class, 'update'])->name('dashboard.company.update');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
     });

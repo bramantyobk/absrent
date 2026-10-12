@@ -21,6 +21,7 @@ class CompanyProfileFactory extends Factory
             'name' => 'ABSRENT Rental',
             'address' => fake()->address(),
             'support_whatsapp' => '628'.fake()->numerify('#########'),
+            'operating_hours' => CompanyProfile::defaultOperatingHours(),
         ];
     }
 }

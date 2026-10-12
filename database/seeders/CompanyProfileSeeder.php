@@ -16,6 +16,7 @@ class CompanyProfileSeeder extends Seeder
             'name' => 'ABSRENT Rental',
             'address' => 'Jl. Contoh Raya No. 1, Jakarta',
             'support_whatsapp' => '6281200000000',
+            'operating_hours' => CompanyProfile::defaultOperatingHours(),
         ]);
     }
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
+use App\Http\Controllers\Api\V1\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Api\V1\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleAvailabilityController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleController;
@@ -31,5 +32,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('vehicles/{vehicle}/timeline', [VehicleAvailabilityController::class, 'timeline'])->name('vehicles.timeline');
         Route::apiResource('vehicles.schedules', VehicleScheduleController::class)->except('show')->scoped();
         Route::post('vehicles/{vehicle}/odometer', [VehicleOdometerController::class, 'store'])->name('vehicles.odometer.store');
+
+        Route::middleware('role:admin')->group(function () {
+            Route::get('company', [CompanyProfileController::class, 'show'])->name('company.show');
+            Route::put('company', [CompanyProfileController::class, 'update'])->name('company.update');
+        });
     });
 });
