@@ -26,4 +26,30 @@ return [
 
     'min_free_window_hours' => (int) env('RENTAL_MIN_FREE_WINDOW_HOURS', 24),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Durasi sewa
+    |--------------------------------------------------------------------------
+    |
+    | Durasi minimal (jam) dan maksimal (hari) satu item sewa. Batas maksimal
+    | dapat diganti per kendaraan lewat kolom vehicles.max_rental_days.
+    |
+    */
+
+    'min_rental_hours' => (int) env('RENTAL_MIN_RENTAL_HOURS', 24),
+
+    'max_rental_days' => (int) env('RENTAL_MAX_RENTAL_DAYS', 7),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kedaluwarsa pesanan Pending (jam)
+    |--------------------------------------------------------------------------
+    |
+    | Pesanan Pending yang tidak dikonfirmasi dalam batas ini dibatalkan otomatis
+    | oleh scheduler (fase 8). Nilainya disimpan di orders.expires_at saat dibuat.
+    |
+    */
+
+    'pending_expiry_hours' => (int) env('RENTAL_PENDING_EXPIRY_HOURS', 24),
+
 ];

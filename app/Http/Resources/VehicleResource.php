@@ -37,6 +37,8 @@ class VehicleResource extends JsonResource
             'energy_unit' => $this->drive_type?->energyUnit(),
             'description' => $this->description,
             'odometer_km' => $this->odometer_km,
+            'max_rental_days' => $this->max_rental_days,
+            'effective_max_rental_days' => $this->effectiveMaxRentalDays(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

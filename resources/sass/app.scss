@@ -43,6 +43,7 @@ a {
 // Partial memakai mixin Bootstrap, jadi di-import setelah Bootstrap.
 // Satu komponen Blade = satu partial (nama sama).
 @import "components/brand";
+@import "layout/customer";
 @import "layout/dashboard/dashboard-topbar";
 @import "layout/dashboard/dashboard-sidebar";
 @import "layout/dashboard/dashboard-main";

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 #[Fillable(['code', 'user_id', 'assigned_operator_id', 'total_price', 'status', 'expires_at'])]
 class Order extends Model
@@ -66,6 +67,18 @@ class Order extends Model
     public function cancellationRequests(): HasMany
     {
         return $this->hasMany(CancellationRequest::class);
+    }
+
+    /**
+     * Kode pesanan unik untuk pesan WhatsApp, mis. ABS-7K3Q9X2M.
+     */
+    public static function generateCode(): string
+    {
+        do {
+            $code = 'ABS-'.Str::upper(Str::random(8));
+        } while (self::query()->where('code', $code)->exists());
+
+        return $code;
     }
 
     public function formattedTotalPrice(): string

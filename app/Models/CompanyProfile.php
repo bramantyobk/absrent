@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WhatsAppLink;
 use App\Weekday;
 use Database\Factories\CompanyProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -74,6 +75,14 @@ class CompanyProfile extends Model
                 'close_at' => $hours['is_open'] ? $hours['close_at'] : null,
             ];
         }, Weekday::cases());
+    }
+
+    /**
+     * Tautan WhatsApp ke nomor support dengan pesan awal, atau null bila nomor support belum diisi.
+     */
+    public function supportWhatsAppUrl(string $message): ?string
+    {
+        return $this->support_whatsapp === '' ? null : app(WhatsAppLink::class)->make($this->support_whatsapp, $message);
     }
 
     /**

@@ -17,9 +17,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['brand', 'model', 'plate_number', 'type', 'year', 'color', 'price_per_day', 'price_per_hour', 'photo', 'is_available', 'drive_type', 'energy_capacity', 'description', 'odometer_km'])]
+#[Fillable(['brand', 'model', 'plate_number', 'type', 'year', 'color', 'price_per_day', 'price_per_hour', 'photo', 'is_available', 'drive_type', 'energy_capacity', 'description', 'odometer_km', 'max_rental_days'])]
 class Vehicle extends Model
 {
     /** @use HasFactory<VehicleFactory> */
@@ -153,6 +154,54 @@ class Vehicle extends Model
             ->when($ignoreScheduleId, fn (Builder $schedules, int $id) => $schedules->whereKeyNot($id))
             ->orderBy('start_at')
             ->get();
+    }
+
+    /**
+     * Memuat perlengkapan aktif sesuai kategori unit ke relasi `equipment` (berurutan), untuk halaman dan API pelanggan.
+     */
+    public function loadEquipment(): static
+    {
+        return $this->setRelation('equipment', EquipmentItem::query()->active()->forCategory($this->type)->ordered()->get());
+    }
+
+    /**
+     * Batas hari sewa maksimal untuk unit ini: pengaturan unit bila ada, selain itu nilai bawaan.
+     */
+    public function effectiveMaxRentalDays(): int
+    {
+        return $this->max_rental_days ?? config('rental.max_rental_days');
+    }
+
+    /**
+     * Unit yang tampil di katalog pelanggan.
+     *
+     * @param  Builder<Vehicle>  $query
+     */
+    #[Scope]
+    protected function listedInCatalog(Builder $query): void
+    {
+        $query->where('is_available', true);
+    }
+
+    /**
+     * Filter katalog pelanggan: cari, kategori, tipe, dan (bila kedua tanggal diisi) hanya unit yang kosong pada rentang itu.
+     *
+     * @param  Builder<Vehicle>  $query
+     * @param  array{search?: ?string, type?: ?string, drive_type?: ?string, start_at?: ?string, end_at?: ?string}  $filters
+     */
+    #[Scope]
+    protected function catalogFilter(Builder $query, array $filters): void
+    {
+        $query
+            ->when($filters['search'] ?? null, fn (Builder $query, string $search) => $query->where(
+                fn (Builder $query) => $query->where('brand', 'like', "%{$search}%")->orWhere('model', 'like', "%{$search}%")
+            ))
+            ->when($filters['type'] ?? null, fn (Builder $query, string $type) => $query->where('type', $type))
+            ->when($filters['drive_type'] ?? null, fn (Builder $query, string $driveType) => $query->where('drive_type', $driveType))
+            ->when(
+                ($filters['start_at'] ?? null) && ($filters['end_at'] ?? null),
+                fn (Builder $query) => $query->availableBetween(Carbon::parse($filters['start_at']), Carbon::parse($filters['end_at']))
+            );
     }
 
     /**

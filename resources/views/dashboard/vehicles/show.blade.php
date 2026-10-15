@@ -11,17 +11,18 @@
     $scheduleStoreUrl = route('dashboard.vehicles.schedules.store', $vehicle);
     $scheduleAction = old('schedule_form_action', $scheduleStoreUrl);
     $scheduleMethod = old('schedule_form_method', 'POST');
-    $autoOpen = $scheduleErrors->any() ? 'scheduleModal' : ($odometerErrors->any() ? 'odometerModal' : null);
+    $rentalLimitErrors = $errors->getBag('rental_limit');
+    $autoOpen = $scheduleErrors->any() ? 'scheduleModal' : ($odometerErrors->any() ? 'odometerModal' : ($rentalLimitErrors->any() ? 'rentalLimitModal' : null));
 @endphp
 
 @section('content')
     <div data-vehicle-detail @if ($autoOpen) data-auto-open="{{ $autoOpen }}" @endif>
         @include('dashboard.users._alerts')
 
-        @if ($scheduleErrors->any() || $odometerErrors->any())
+        @if ($scheduleErrors->any() || $odometerErrors->any() || $rentalLimitErrors->any())
             <div class="alert alert-danger" role="alert">
                 <ul class="mb-0 ps-3">
-                    @foreach (array_merge($scheduleErrors->all(), $odometerErrors->all()) as $message)
+                    @foreach (array_merge($scheduleErrors->all(), $odometerErrors->all(), $rentalLimitErrors->all()) as $message)
                         <li>{{ $message }}</li>
                     @endforeach
                 </ul>
@@ -65,6 +66,12 @@
                         <dd class="col-6 col-md-9 d-flex flex-wrap align-items-center gap-2">
                             {{ $lastOdometer !== null ? number_format($lastOdometer, 0, ',', '.').' km' : '-' }}
                             <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#odometerModal">Perbarui odometer</button>
+                        </dd>
+                        <dt class="col-6 col-md-3">Hari sewa maksimal</dt>
+                        <dd class="col-6 col-md-9 d-flex flex-wrap align-items-center gap-2">
+                            {{ $vehicle->effectiveMaxRentalDays() }} hari
+                            <span class="small text-body-secondary">({{ $vehicle->max_rental_days ? 'khusus unit ini' : 'bawaan' }})</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#rentalLimitModal">Atur</button>
                         </dd>
                         <dt class="col-12 col-md-3">Deskripsi</dt>
                         <dd class="col-12 col-md-9">{{ $vehicle->description ?: '-' }}</dd>
@@ -266,6 +273,35 @@
                     <div>
                         <label for="odometer_note" class="form-label">Catatan</label>
                         <textarea id="odometer_note" name="note" rows="2" maxlength="500" class="form-control">{{ old('note') }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    {{-- Modal hari sewa maksimal --}}
+    <div class="modal fade" id="rentalLimitModal" tabindex="-1" aria-labelledby="rentalLimitModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="POST" action="{{ route('dashboard.vehicles.rental-limit.update', $vehicle) }}" class="modal-content" novalidate>
+                @csrf
+                @method('PUT')
+
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="rentalLimitModalLabel">Hari sewa maksimal</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="max_rental_days" class="form-label">Hari sewa maksimal (unit ini)</label>
+                    <input type="number" id="max_rental_days" name="max_rental_days" min="1" max="{{ \App\Http\Requests\UpdateVehicleRentalLimitRequest::MAX_DAYS }}"
+                        value="{{ old('max_rental_days', $vehicle->max_rental_days) }}" placeholder="{{ config('rental.max_rental_days') }}" class="form-control">
+                    <div class="form-text">
+                        Kosongkan untuk memakai batas bawaan ({{ config('rental.max_rental_days') }} hari). Berlaku untuk pesanan berikutnya.
+                        Durasi minimal tetap {{ config('rental.min_rental_hours') }} jam.
                     </div>
                 </div>
                 <div class="modal-footer">
