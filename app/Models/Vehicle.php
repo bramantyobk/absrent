@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\OldVehicleStatus;
 use App\OrderStatus;
 use App\Services\RentalQuote;
 use App\Services\VehiclePhotoStorage;
@@ -72,6 +73,9 @@ class Vehicle extends Model
             ->whereDoesntHave('orderItems', fn (Builder $items) => $items
                 ->holdingBetween($start, $end)
                 ->when($ignoreOrderItemId, fn (Builder $items, int $id) => $items->whereKeyNot($id)))
+            ->whereDoesntHave('outgoingChanges', fn (Builder $changes) => $changes
+                ->where('old_vehicle_status', OldVehicleStatus::Pending)
+                ->whereHas('orderItem', fn (Builder $items) => $items->where('start_at', '<', $end)))
             ->whereDoesntHave('schedules', fn (Builder $schedules) => $schedules->overlapping($start, $end));
     }
 
@@ -101,6 +105,7 @@ class Vehicle extends Model
             'orderItems as is_overdue_now' => fn (Builder $items) => $items
                 ->where('end_at', '<', $now->copy()->subHours(config('rental.return_buffer_hours')))
                 ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented)),
+            'outgoingChanges as has_unreturned_unit' => fn (Builder $changes) => $changes->where('old_vehicle_status', OldVehicleStatus::Pending),
             'orderItems as is_booked_now' => fn (Builder $items) => $items
                 ->holdingBetween($now, $untilNextSecond)
                 ->whereHas('order', fn (Builder $order) => $order->whereIn('status', [OrderStatus::Pending, OrderStatus::Booking])),
@@ -119,6 +124,9 @@ class Vehicle extends Model
             ->where('end_at', '<', $now->copy()->subHours(config('rental.return_buffer_hours')))
             ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented))
             ->exists());
+        $hasUnreturnedUnit = $this->flagOrQuery('has_unreturned_unit', fn () => $this->outgoingChanges()
+            ->where('old_vehicle_status', OldVehicleStatus::Pending)
+            ->exists());
         $isServicing = $this->flagOrQuery('is_servicing_now', fn () => $this->schedules()
             ->overlapping($now, $now->copy()->addSecond())
             ->exists());
@@ -128,7 +136,7 @@ class Vehicle extends Model
             ->exists());
 
         return match (true) {
-            $isOverdue => VehicleStatus::Overdue,
+            $isOverdue, $hasUnreturnedUnit => VehicleStatus::Overdue,
             $isRented => VehicleStatus::Rented,
             $isServicing => VehicleStatus::Servicing,
             $isBooked => VehicleStatus::Booked,
@@ -248,6 +256,16 @@ class Vehicle extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Penggantian kendaraan yang meninggalkan unit ini (unit lama).
+     *
+     * @return HasMany<OrderVehicleChange, $this>
+     */
+    public function outgoingChanges(): HasMany
+    {
+        return $this->hasMany(OrderVehicleChange::class, 'from_vehicle_id');
     }
 
     /**

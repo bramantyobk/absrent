@@ -79,6 +79,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Batas pengurangan biaya ganti kendaraan untuk operator (rupiah)
+    |--------------------------------------------------------------------------
+    |
+    | Pengurangan biaya di bawah batas ini dapat dilakukan operator atau admin.
+    | Pengurangan sebesar batas ini atau lebih hanya dapat dilakukan admin.
+    |
+    */
+
+    'vehicle_change_admin_threshold' => (int) env('RENTAL_VEHICLE_CHANGE_ADMIN_THRESHOLD', 100000),
+
+    /*
+    |--------------------------------------------------------------------------
     | Batas pesanan Pending per pelanggan
     |--------------------------------------------------------------------------
     |

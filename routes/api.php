@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Api\V1\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Api\V1\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderController as DashboardOrderController;
+use App\Http\Controllers\Api\V1\Dashboard\OrderVehicleChangeController;
 use App\Http\Controllers\Api\V1\Dashboard\TransactionController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleAvailabilityController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleController;
@@ -58,6 +59,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('orders', [DashboardOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [DashboardOrderController::class, 'status'])->name('orders.status');
+        Route::get('orders/{order}/items/{item}/replacement-options', [OrderVehicleChangeController::class, 'options'])->name('orders.items.replacement-options');
+        Route::post('orders/{order}/items/{item}/vehicle-change', [OrderVehicleChangeController::class, 'store'])->name('orders.items.vehicle-change');
+        Route::patch('vehicle-changes/{change}/old-vehicle', [OrderVehicleChangeController::class, 'oldVehicle'])->name('vehicle-changes.old-vehicle');
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         Route::post('transactions/{transaction}/verify', [TransactionController::class, 'verify'])->name('transactions.verify');

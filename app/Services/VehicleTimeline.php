@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\InspectionType;
 use App\Models\OrderItem;
+use App\Models\OrderVehicleChange;
 use App\Models\Vehicle;
 use App\Models\VehicleSchedule;
+use App\OldVehicleStatus;
 use App\OrderStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -31,10 +33,11 @@ class VehicleTimeline
             ->limit(self::LIMIT)
             ->get()
             ->toBase()
-            ->map(function (OrderItem $item) use ($buffer): array {
+            ->map(function (OrderItem $item) use ($buffer, $vehicle): array {
                 $isOverdue = $item->order->status === OrderStatus::Rented && $item->end_at->copy()->addHours($buffer)->lte(now());
-                $odometerStart = $item->inspections->firstWhere('type', InspectionType::Pickup)?->odometer_km;
-                $odometerEnd = $item->inspections->firstWhere('type', InspectionType::Return)?->odometer_km;
+                $ownInspections = $item->inspections->where('vehicle_id', $vehicle->id);
+                $odometerStart = $ownInspections->firstWhere('type', InspectionType::Pickup)?->odometer_km;
+                $odometerEnd = $ownInspections->firstWhere('type', InspectionType::Return)?->odometer_km;
 
                 return [
                     'kind' => 'order',
@@ -49,6 +52,34 @@ class VehicleTimeline
                     'odometer_end' => $odometerEnd,
                     'distance_km' => $odometerStart !== null && $odometerEnd !== null ? $odometerEnd - $odometerStart : null,
                     'note' => null,
+                    'schedule' => null,
+                ];
+            });
+
+        $unreturned = $vehicle->outgoingChanges()
+            ->whereIn('old_vehicle_status', [OldVehicleStatus::Pending, OldVehicleStatus::Lost])
+            ->with(['orderItem.order.user', 'toVehicle'])
+            ->latest('id')
+            ->limit(self::LIMIT)
+            ->get()
+            ->toBase()
+            ->map(function (OrderVehicleChange $change): array {
+                $item = $change->orderItem;
+                $isPending = $change->old_vehicle_status === OldVehicleStatus::Pending;
+
+                return [
+                    'kind' => 'order',
+                    'start_at' => $item->start_at,
+                    'end_at' => $item->end_at,
+                    'free_at' => null,
+                    'title' => $item->order->code,
+                    'subtitle' => $item->order->user->name,
+                    'status_label' => $isPending ? 'Belum kembali' : 'Hilang/dicuri',
+                    'status_class' => $change->old_vehicle_status->badgeClass(),
+                    'odometer_start' => null,
+                    'odometer_end' => null,
+                    'distance_km' => null,
+                    'note' => "Diganti dengan {$change->toVehicle->brand} {$change->toVehicle->model}. {$change->old_vehicle_note}",
                     'schedule' => null,
                 ];
             });
@@ -75,7 +106,7 @@ class VehicleTimeline
                 'schedule' => $schedule,
             ]);
 
-        return $orders->concat($schedules)
+        return $orders->concat($unreturned)->concat($schedules)
             ->sort(fn (array $a, array $b): int => [$b['start_at']->getTimestamp(), $b['kind']] <=> [$a['start_at']->getTimestamp(), $a['kind']])
             ->values();
     }

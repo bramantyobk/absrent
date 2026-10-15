@@ -9,8 +9,10 @@ use App\Http\Controllers\Dashboard\BankAccountController;
 use App\Http\Controllers\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
+use App\Http\Controllers\Dashboard\OldVehicleController;
 use App\Http\Controllers\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Dashboard\OrderStatusController;
+use App\Http\Controllers\Dashboard\OrderVehicleChangeController;
 use App\Http\Controllers\Dashboard\TransactionController;
 use App\Http\Controllers\Dashboard\TransactionProofController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -75,6 +77,8 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
     Route::get('orders', [DashboardOrderController::class, 'index'])->name('dashboard.orders.index');
     Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('dashboard.orders.show');
     Route::patch('orders/{order}/status', [OrderStatusController::class, 'update'])->name('dashboard.orders.status.update');
+    Route::post('orders/{order}/items/{item}/vehicle-change', [OrderVehicleChangeController::class, 'store'])->scopeBindings()->name('dashboard.orders.items.vehicle-change.store');
+    Route::patch('vehicle-changes/{change}/old-vehicle', [OldVehicleController::class, 'update'])->name('dashboard.vehicle-changes.old-vehicle.update');
 
     Route::get('transactions', [TransactionController::class, 'index'])->name('dashboard.transactions.index');
     Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('dashboard.transactions.show');

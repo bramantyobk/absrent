@@ -37,6 +37,14 @@ class OrderPolicy
     }
 
     /**
+     * Pengurangan biaya ganti kendaraan sebesar batas (`rental.vehicle_change_admin_threshold`) atau lebih hanya oleh admin.
+     */
+    public function approveLargeReduction(User $actor, Order $order): bool
+    {
+        return $actor->isAdmin();
+    }
+
+    /**
      * Mengajukan pembatalan: hanya untuk pesanan Lunas yang belum Disewa (status Booking) dan belum punya pengajuan menunggu.
      */
     public function requestCancellation(User $actor, Order $order): Response

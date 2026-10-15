@@ -114,3 +114,8 @@ if (verifyChoices.length > 0) {
 if (document.querySelector('[data-order-inspection]')) {
     import('./dashboard-order-inspection');
 }
+
+// Detail pesanan: dialog ganti kendaraan dan penyelesaian unit lama
+if (document.querySelector('[data-vehicle-change], [data-old-unit]')) {
+    import('./dashboard-order-vehicle-change');
+}

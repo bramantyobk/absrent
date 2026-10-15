@@ -59,6 +59,7 @@ class OrderResource extends JsonResource
                     'account_holder' => $this->transaction->bankAccount->account_holder,
                 ] : null,
             ] : null),
+            'vehicle_changes' => $this->whenLoaded('items', fn () => $this->items->every(fn ($item) => $item->relationLoaded('vehicleChanges')) ? OrderVehicleChangeResource::collection($this->items->flatMap->vehicleChanges->sortBy('id')->values()) : null),
             'cancellation_request' => $this->whenLoaded('cancellationRequests', fn () => ($request = $this->cancellationRequests->sortByDesc('id')->first()) ? new CancellationRequestResource($request) : null),
         ];
     }

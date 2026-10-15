@@ -75,4 +75,14 @@ class OrderItem extends Model
     {
         return $this->hasMany(VehicleInspection::class);
     }
+
+    /**
+     * Riwayat ganti kendaraan pada item ini.
+     *
+     * @return HasMany<OrderVehicleChange, $this>
+     */
+    public function vehicleChanges(): HasMany
+    {
+        return $this->hasMany(OrderVehicleChange::class);
+    }
 }

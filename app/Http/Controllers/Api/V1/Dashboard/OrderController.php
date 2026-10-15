@@ -41,7 +41,7 @@ class OrderController extends Controller
     {
         Gate::authorize('manage', $order);
 
-        return new OrderResource($order->load(['user', 'items.vehicle', 'items.inspections', 'transaction.bankAccount', 'cancellationRequests']));
+        return new OrderResource($order->load(['user', 'items.vehicle', 'items.inspections', 'items.vehicleChanges.fromVehicle', 'items.vehicleChanges.toVehicle', 'transaction.bankAccount', 'cancellationRequests']));
     }
 
     /**

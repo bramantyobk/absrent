@@ -3,7 +3,7 @@
 @section('title', "Pesanan {$order->code}")
 
 @section('content')
-    @php($autoOpen = $errors->isNotEmpty() ? (old('status') === 'stolen' ? 'stolenModal' : (old('status') ? 'statusModal' : null)) : null)
+    @php($autoOpen = $errors->isNotEmpty() ? (old('change_item_id') ? 'changeModal'.old('change_item_id') : (old('old_unit_change_id') ? 'oldUnitModal'.old('old_unit_change_id') : (old('status') === 'stolen' ? 'stolenModal' : (old('status') ? 'statusModal' : null)))) : null)
     <div data-order-inspection @if ($autoOpen) data-auto-open="{{ $autoOpen }}" @endif></div>
 
     @include('dashboard.users._alerts')
@@ -41,7 +41,12 @@
                                 ({{ $item->days }} hari &times; Rp{{ number_format($item->unit_price, 0, ',', '.') }})
                             </div>
                         </div>
-                        <strong class="text-nowrap">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</strong>
+                        <div class="text-end">
+                            <strong class="text-nowrap">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</strong>
+                            @if ($canChangeVehicle)
+                                <div><button type="button" class="btn btn-sm btn-outline-primary mt-2" data-bs-toggle="modal" data-bs-target="#changeModal{{ $item->id }}">Ganti kendaraan</button></div>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -60,6 +65,41 @@
                     @empty
                         <p class="small mb-0">Tidak ada pesanan mendatang atas unit ini.</p>
                     @endforelse
+                </div>
+            @endif
+
+            @if ($changes->isNotEmpty())
+                <div class="card-custom p-4 mb-4">
+                    <h3 class="card-heading fs-6">Riwayat Ganti Kendaraan</h3>
+                    @foreach ($changes as $change)
+                        <div class="{{ $loop->first ? '' : 'border-top pt-3 mt-3' }}">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <span class="fw-semibold">
+                                    {{ $change->fromVehicle->brand }} {{ $change->fromVehicle->model }} &rarr; {{ $change->toVehicle->brand }} {{ $change->toVehicle->model }}
+                                </span>
+                                <span class="small text-body-secondary">{{ $change->created_at->format('d/m/Y H:i') }} &middot; {{ $change->changedBy?->name }}</span>
+                            </div>
+                            <div class="small">
+                                {{ $change->reason->label() }} &middot; dari {{ $change->from_order_status->label() }}
+                                &middot; saran {{ $change->suggested_amount >= 0 ? '+' : '-' }}Rp{{ number_format(abs($change->suggested_amount), 0, ',', '.') }}
+                                &middot; akhir <strong>{{ $change->final_amount >= 0 ? '+' : '-' }}Rp{{ number_format(abs($change->final_amount), 0, ',', '.') }}</strong>
+                            </div>
+                            @if ($change->note)
+                                <div class="small text-body-secondary">{{ $change->note }}</div>
+                            @endif
+                            @if ($change->old_vehicle_status)
+                                <div class="small mt-1">
+                                    Unit lama: <span class="status-badge {{ $change->old_vehicle_status->badgeClass() }}">{{ $change->old_vehicle_status->label() }}</span>
+                                    @if ($change->old_vehicle_note)
+                                        <span class="text-body-secondary">{{ $change->old_vehicle_note }}</span>
+                                    @endif
+                                    @if ($change->old_vehicle_status === \App\OldVehicleStatus::Pending)
+                                        <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#oldUnitModal{{ $change->id }}">Selesaikan</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             @endif
 
@@ -167,4 +207,14 @@
     @if ($canMarkStolen)
         @include('dashboard.orders._stolen-modal')
     @endif
+
+    @if ($canChangeVehicle)
+        @foreach ($order->items as $item)
+            @include('dashboard.orders._vehicle-change-modal')
+        @endforeach
+    @endif
+
+    @foreach ($pendingUnits as $pending)
+        @include('dashboard.orders._old-unit-modal')
+    @endforeach
 @endsection

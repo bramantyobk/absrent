@@ -6,6 +6,7 @@ use App\InspectionType;
 use App\Models\EquipmentItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderVehicleChange;
 use App\OrderStatus;
 use Illuminate\Support\Collection;
 
@@ -35,7 +36,7 @@ class OrderInspectionForm
 
         return $order->items->map(function (OrderItem $item) use ($type): array {
             $vehicle = $item->vehicle;
-            $pickup = $item->inspections->firstWhere('type', InspectionType::Pickup);
+            $pickup = $item->inspections->where('vehicle_id', $vehicle->id)->firstWhere('type', InspectionType::Pickup);
 
             $checklist = $type === InspectionType::Pickup
                 ? EquipmentItem::query()->active()->forCategory($vehicle->type)->ordered()->get()
@@ -52,6 +53,39 @@ class OrderInspectionForm
                 'checklist' => $checklist,
             ];
         });
+    }
+
+    /**
+     * Isian inspeksi pengembalian untuk unit lama yang Ditunda (ceklis dari snapshot pengambilan unit itu).
+     *
+     * @return array{change: OrderVehicleChange, minimum_odometer: int, energy_label: string, checklist: list<array{id: int, name: string, expected: int, default: int}>}
+     */
+    public function forPendingChange(OrderVehicleChange $change): array
+    {
+        $vehicle = $change->fromVehicle;
+        $pickup = $change->orderItem->inspections()->where('vehicle_id', $vehicle->id)->where('type', InspectionType::Pickup)->latest('id')->first();
+
+        return [
+            'change' => $change,
+            'minimum_odometer' => max($vehicle->odometer_km ?? 0, $pickup?->odometer_km ?? 0),
+            'energy_label' => ($vehicle->drive_type?->energyLabel()) ?? 'Bensin',
+            'checklist' => collect($pickup?->equipment_checks ?? [])
+                ->map(fn (array $row): array => ['id' => $row['equipment_item_id'], 'name' => $row['name'], 'expected' => $row['expected'], 'default' => $row['checked']])
+                ->all(),
+        ];
+    }
+
+    /**
+     * Ceklis pengambilan unit baru menurut kategori (perlengkapan aktif), karena kategori unit pengganti dipilih di dialog.
+     *
+     * @return array<string, list<array{id: int, name: string, expected: int, default: int}>>
+     */
+    public function pickupChecklistsByCategory(): array
+    {
+        return EquipmentItem::query()->active()->ordered()->get()
+            ->groupBy(fn (EquipmentItem $equipment): string => $equipment->category->value)
+            ->map(fn ($rows) => $rows->map(fn (EquipmentItem $equipment): array => ['id' => $equipment->id, 'name' => $equipment->name, 'expected' => $equipment->quantity, 'default' => $equipment->quantity])->values()->all())
+            ->all();
     }
 
     /**
