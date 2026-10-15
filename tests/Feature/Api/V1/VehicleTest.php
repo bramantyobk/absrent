@@ -4,6 +4,7 @@ use App\Models\OrderItem;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 function vehiclePayload(array $overrides = []): array
@@ -163,4 +164,37 @@ it('answers 409 when deleting a vehicle that has order history', function () {
         ->assertJsonStructure(['message']);
 
     expect(Vehicle::count())->toBe(1);
+});
+
+it('runs the same number of queries however many vehicles are listed', function () {
+    $this->actingAs(User::factory()->operator()->create());
+    $queriesFor = function (): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->getJson(route('api.v1.dashboard.vehicles.index'))->assertOk();
+
+        return count(DB::getQueryLog());
+    };
+
+    Vehicle::factory()->count(2)->create();
+    $few = $queriesFor();
+    Vehicle::factory()->count(5)->create();
+
+    expect($queriesFor())->toBe($few);
+});
+
+it('keeps a vehicle in the catalog when an update omits is_available, and lists new vehicles by default', function () {
+    $this->actingAs(User::factory()->admin()->create());
+    $vehicle = Vehicle::factory()->create(['plate_number' => 'B 1234 XYZ']);
+    $payload = fn (array $overrides = []) => array_diff_key(vehiclePayload($overrides), ['is_available' => true]);
+
+    $this->putJson(route('api.v1.dashboard.vehicles.update', $vehicle), $payload(['color' => 'Merah']))->assertOk();
+    expect($vehicle->refresh()->is_available)->toBeTrue();
+
+    $this->putJson(route('api.v1.dashboard.vehicles.update', $vehicle), vehiclePayload(['is_available' => false]))->assertOk();
+    expect($vehicle->refresh()->is_available)->toBeFalse();
+
+    $this->postJson(route('api.v1.dashboard.vehicles.store'), $payload(['plate_number' => 'B 7777 AA']))
+        ->assertCreated()
+        ->assertJsonPath('data.is_available', true);
 });

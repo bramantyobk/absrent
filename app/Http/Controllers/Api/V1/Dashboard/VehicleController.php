@@ -30,6 +30,7 @@ class VehicleController extends Controller
         return VehicleResource::collection(
             Vehicle::query()
                 ->filter($filters)
+                ->withDisplayStatus()
                 ->orderBy('brand')
                 ->orderBy('model')
                 ->orderBy('id')

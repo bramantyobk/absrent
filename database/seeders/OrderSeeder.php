@@ -181,24 +181,46 @@ class OrderSeeder extends Seeder
     }
 
     /**
-     * Pilih 1 atau 2 kendaraan (pesanan multi-kendaraan) dengan jadwal yang tidak bentrok.
+     * Pilih 1 atau 2 kendaraan. Kendaraan kedua memakai periode yang sama dengan yang pertama (satu pesanan satu periode)
+     * dan dipilih dari unit yang kosong pada periode itu.
      *
      * @param  array{count: int, order: string, transaction: string, from: int, to: int, days: array{0: int, 1: int}, blocks: bool, cancellation?: string}  $scenario
      * @return list<array{vehicle: Vehicle, start: Carbon, end: Carbon, days: int}>
      */
     private function pickSlots(array $scenario): array
     {
-        $slots = [];
-        $usedVehicleIds = [];
-        $itemCount = fake()->boolean(25) ? 2 : 1;
+        $first = $this->findFreeSlot($scenario, []);
+        $slots = [$first];
 
-        for ($i = 0; $i < $itemCount; $i++) {
-            $slot = $this->findFreeSlot($scenario, $usedVehicleIds);
-            $usedVehicleIds[] = $slot['vehicle']->id;
-            $slots[] = $slot;
+        if (fake()->boolean(25)) {
+            $second = $this->findVehicleForPeriod($scenario, [$first['vehicle']->id], $first['start'], $first['end'], $first['days']);
+
+            if ($second !== null) {
+                $slots[] = $second;
+            }
         }
 
         return $slots;
+    }
+
+    /**
+     * @param  array{count: int, order: string, transaction: string, from: int, to: int, days: array{0: int, 1: int}, blocks: bool, cancellation?: string}  $scenario
+     * @param  list<int>  $excludedVehicleIds
+     * @return array{vehicle: Vehicle, start: Carbon, end: Carbon, days: int}|null
+     */
+    private function findVehicleForPeriod(array $scenario, array $excludedVehicleIds, Carbon $start, Carbon $end, int $days): ?array
+    {
+        foreach ($this->vehicles->whereNotIn('id', $excludedVehicleIds)->shuffle() as $vehicle) {
+            if (! $scenario['blocks'] || ! $this->overlaps($vehicle->id, $start, $end)) {
+                if ($scenario['blocks']) {
+                    $this->bookedWindows[$vehicle->id][] = [$start, $end];
+                }
+
+                return ['vehicle' => $vehicle, 'start' => $start, 'end' => $end, 'days' => $days];
+            }
+        }
+
+        return null;
     }
 
     /**

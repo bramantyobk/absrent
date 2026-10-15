@@ -74,11 +74,7 @@ class Order extends Model
      */
     public static function generateCode(): string
     {
-        do {
-            $code = 'ABS-'.Str::upper(Str::random(8));
-        } while (self::query()->where('code', $code)->exists());
-
-        return $code;
+        return 'ABS-'.Str::upper(Str::random(8));
     }
 
     public function formattedTotalPrice(): string

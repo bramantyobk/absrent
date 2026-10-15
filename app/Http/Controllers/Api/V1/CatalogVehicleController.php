@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CatalogFilterRequest;
 use App\Http\Requests\RentalPeriodRequest;
+use App\Http\Requests\ReturnOptionsRequest;
 use App\Http\Resources\CatalogVehicleResource;
 use App\Models\Vehicle;
 use App\Services\RentalQuote;
@@ -49,24 +50,47 @@ class CatalogVehicleController extends Controller
     /**
      * Hitung sewa dan cek ketersediaan
      *
-     * Mengembalikan jumlah hari dan subtotal bila jadwal valid dan unit kosong. Mulai tidak boleh di masa lalu,
-     * durasi minimal 24 jam dan maksimal sesuai batas kendaraan (bawaan 7 hari). Jadwal yang melanggar aturan atau bentrok menghasilkan 422.
+     * Mengembalikan waktu selesai dan subtotal bila periode valid dan unit kosong. `start_at` tanpa offset dibaca sebagai
+     * waktu lokasi perusahaan (WIB), dan dengan offset dikonversi ke WIB. Durasi `days` minimal 1 hari dan maksimal sesuai
+     * batas kendaraan (bawaan 7 hari). Periode yang melanggar aturan atau bentrok (termasuk jeda pengembalian) menghasilkan 422.
      */
     public function quote(RentalPeriodRequest $request, Vehicle $vehicle, RentalQuote $rentalQuote): JsonResponse
     {
         abort_unless($vehicle->is_available, 404);
 
-        $quote = $rentalQuote->calculate($vehicle, $request->validated('start_at'), $request->validated('end_at'));
+        $quote = $rentalQuote->calculate($vehicle, $request->validated('start_at'), (int) $request->validated('days'));
         $rentalQuote->ensureAvailable($vehicle, $quote['start_at'], $quote['end_at']);
 
         return response()->json(['data' => [
             'vehicle_id' => $vehicle->id,
-            'start_at' => $quote['start_at'],
-            'end_at' => $quote['end_at'],
+            'start_at' => $quote['start_at']->toIso8601String(),
+            'end_at' => $quote['end_at']->toIso8601String(),
+            'end_label' => $rentalQuote->label($quote['end_at']),
             'days' => $quote['days'],
             'unit_price' => $quote['unit_price'],
             'subtotal' => $quote['subtotal'],
             'available' => true,
         ]]);
+    }
+
+    /**
+     * Opsi durasi dan waktu pengembalian
+     *
+     * Untuk waktu mulai tertentu, daftar durasi yang dapat dipilih (1 hari sampai batas kendaraan). Durasi yang bentrok
+     * dengan pesanan atau servis berikutnya (termasuk jeda pengembalian) tidak ikut. Daftar kosong berarti unit tidak
+     * tersedia pada waktu mulai itu. Waktu mulai di masa lalu menghasilkan 422.
+     */
+    public function returnOptions(ReturnOptionsRequest $request, Vehicle $vehicle, RentalQuote $rentalQuote): JsonResponse
+    {
+        abort_unless($vehicle->is_available, 404);
+
+        return response()->json(['data' => $rentalQuote->options($vehicle, $request->validated('start_at'))
+            ->map(fn (array $option): array => [
+                'days' => $option['days'],
+                'end_at' => $option['end_at']->toIso8601String(),
+                'end_label' => $option['end_label'],
+                'subtotal' => $option['subtotal'],
+            ])
+            ->values()]);
     }
 }

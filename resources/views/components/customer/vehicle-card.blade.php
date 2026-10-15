@@ -1,7 +1,7 @@
-@props(['vehicle', 'startAt' => null, 'endAt' => null])
+@props(['vehicle', 'startAt' => null, 'days' => null])
 
 <article class="vehicle-card h-100">
-    <a href="{{ route('vehicles.show', ['vehicle' => $vehicle, 'start_at' => $startAt, 'end_at' => $endAt]) }}" class="vehicle-card-media">
+    <a href="{{ route('vehicles.show', ['vehicle' => $vehicle, 'start_at' => $startAt, 'days' => $days]) }}" class="vehicle-card-media">
         <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->brand }} {{ $vehicle->model }}" loading="lazy">
     </a>
     <div class="vehicle-card-body">
@@ -12,7 +12,7 @@
             @endif
         </div>
         <h3 class="vehicle-card-title">
-            <a href="{{ route('vehicles.show', ['vehicle' => $vehicle, 'start_at' => $startAt, 'end_at' => $endAt]) }}">{{ $vehicle->brand }} {{ $vehicle->model }}</a>
+            <a href="{{ route('vehicles.show', ['vehicle' => $vehicle, 'start_at' => $startAt, 'days' => $days]) }}">{{ $vehicle->brand }} {{ $vehicle->model }}</a>
         </h3>
         <p class="vehicle-card-meta">{{ $vehicle->year }} · {{ $vehicle->color }}</p>
         <div class="d-flex align-items-end justify-content-between gap-2 mt-auto">
@@ -20,7 +20,7 @@
                 <strong>Rp{{ number_format($vehicle->price_per_day, 0, ',', '.') }}</strong>
                 <span>/ hari</span>
             </p>
-            <a href="{{ route('vehicles.show', ['vehicle' => $vehicle, 'start_at' => $startAt, 'end_at' => $endAt]) }}" class="btn btn-primary btn-sm">Pesan</a>
+            <a href="{{ route('vehicles.show', ['vehicle' => $vehicle, 'start_at' => $startAt, 'days' => $days]) }}" class="btn btn-primary btn-sm">Pesan</a>
         </div>
     </div>
 </article>

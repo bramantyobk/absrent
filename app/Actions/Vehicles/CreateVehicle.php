@@ -21,7 +21,7 @@ class CreateVehicle
         $path = $photo ? $this->photos->store($photo) : null;
 
         try {
-            return Vehicle::create($data + ['photo' => $path]);
+            return Vehicle::create($data + ['photo' => $path, 'is_available' => true]);
         } catch (Throwable $exception) {
             $this->photos->delete($path);
 

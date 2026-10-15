@@ -25,8 +25,11 @@ abstract class VehicleRequest extends FormRequest
     {
         $this->merge([
             'plate_number' => strtoupper(preg_replace('/\s+/', ' ', trim((string) $this->input('plate_number')))),
-            'is_available' => $this->boolean('is_available'),
         ]);
+
+        if ($this->has('is_available')) {
+            $this->merge(['is_available' => $this->boolean('is_available')]);
+        }
     }
 
     /**
@@ -54,7 +57,7 @@ abstract class VehicleRequest extends FormRequest
             'price_per_day' => ['required', 'integer', 'min:1', 'max:100000000'],
             'price_per_hour' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.self::MAX_PHOTO_KB, 'dimensions:max_width=8000,max_height=8000'],
-            'is_available' => ['boolean'],
+            'is_available' => ['sometimes', 'boolean'],
             'drive_type' => ['required', Rule::enum(VehicleDriveType::class)],
             'energy_capacity' => ['required', 'numeric', 'gt:0', 'max:9999.9', 'decimal:0,1'],
             'description' => ['nullable', 'string', 'max:2000'],

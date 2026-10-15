@@ -30,14 +30,18 @@
                 </select>
             </div>
             <div class="col-6 col-lg-2">
-                <label for="start_at" class="form-label small mb-1">Mulai</label>
+                <label for="start_at" class="form-label small mb-1">Mulai ({{ config('rental.timezone_label') }})</label>
                 <input type="datetime-local" id="start_at" name="start_at" value="{{ $filters['start_at'] ?? '' }}"
                     class="form-control @error('start_at') is-invalid @enderror">
             </div>
             <div class="col-6 col-lg-2">
-                <label for="end_at" class="form-label small mb-1">Selesai</label>
-                <input type="datetime-local" id="end_at" name="end_at" value="{{ $filters['end_at'] ?? '' }}"
-                    class="form-control @error('end_at') is-invalid @enderror">
+                <label for="days" class="form-label small mb-1">Durasi</label>
+                <select id="days" name="days" class="form-select @error('days') is-invalid @enderror">
+                    <option value="">-</option>
+                    @foreach ($dayChoices as $dayChoice)
+                        <option value="{{ $dayChoice }}" @selected((int) ($filters['days'] ?? 0) === $dayChoice)>{{ $dayChoice }} hari</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
@@ -54,7 +58,7 @@
     <div class="row g-3 g-lg-4">
         @forelse ($vehicles as $vehicle)
             <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                <x-customer.vehicle-card :vehicle="$vehicle" :start-at="$filters['start_at'] ?? null" :end-at="$filters['end_at'] ?? null" />
+                <x-customer.vehicle-card :vehicle="$vehicle" :start-at="$filters['start_at'] ?? null" :days="$filters['days'] ?? null" />
             </div>
         @empty
             <div class="col-12">

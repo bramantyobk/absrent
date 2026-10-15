@@ -48,10 +48,10 @@ it('shows the order detail with items, total, status, and a support link', funct
         ->assertSee('https://wa.me/6281200000000?text=Halo%2C%20saya%20butuh%20bantuan%20untuk%20pesanan%20ABS-DETAIL01.', false);
 });
 
-it('forbids opening another customer order', function () {
+it('returns 404 for another customer order so its id is not confirmed', function () {
     $order = customerOrder(User::factory()->create());
 
-    $this->actingAs(User::factory()->create())->get(route('orders.show', $order))->assertForbidden();
+    $this->actingAs(User::factory()->create())->get(route('orders.show', $order))->assertNotFound();
 });
 
 it('forbids staff on the customer order pages', function () {

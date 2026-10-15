@@ -8,10 +8,12 @@ use App\Models\Vehicle;
 use App\OrderStatus;
 use App\Services\RentalQuote;
 use App\TransactionStatus;
-use Illuminate\Support\Carbon;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CreateOrder
 {
@@ -19,46 +21,57 @@ class CreateOrder
 
     /**
      * Membuat pesanan `Pending` beserta item dan transaksi `Pending` untuk pelanggan. Dipakai bersama checkout
-     * Blade dan API. Dengan `$idempotencyKey`, permintaan ulang yang sama mengembalikan pesanan yang sudah dibuat
+     * Blade dan API. Satu pesanan memakai satu periode (waktu mulai + jumlah hari) untuk semua kendaraannya.
+     * Dengan `$idempotencyKey`, permintaan ulang yang sama mengembalikan pesanan yang sudah dibuat
      * (`wasRecentlyCreated` bernilai false) dan tidak membuat pesanan ganda.
      *
-     * @param  list<array{vehicle_id: int|string, start_at: string, end_at: string}>  $items
+     * @param  list<int|string>  $vehicleIds
      *
      * @throws ValidationException
      */
-    public function handle(User $customer, array $items, ?string $idempotencyKey = null): Order
+    public function handle(User $customer, string $startAt, int $days, array $vehicleIds, ?string $idempotencyKey = null): Order
     {
+        $this->ensureVehicleCount($vehicleIds);
+
         if ($idempotencyKey === null || $idempotencyKey === '') {
-            return $this->create($customer, $items);
+            return $this->create($customer, $startAt, $days, $vehicleIds);
         }
 
         $cacheKey = "checkout:{$customer->getKey()}:{$idempotencyKey}";
 
-        return Cache::lock("{$cacheKey}:lock", 10)->block(5, function () use ($customer, $items, $cacheKey): Order {
-            $existing = ($orderId = Cache::get($cacheKey)) ? Order::query()->with(['items.vehicle', 'transaction'])->find($orderId) : null;
+        try {
+            return Cache::lock("{$cacheKey}:lock", 10)->block(config('rental.checkout_lock_wait_seconds'), function () use ($customer, $startAt, $days, $vehicleIds, $cacheKey): Order {
+                $existing = ($orderId = Cache::get($cacheKey)) ? Order::query()->with(['items.vehicle', 'transaction'])->find($orderId) : null;
 
-            if ($existing) {
-                return $existing;
-            }
+                if ($existing) {
+                    return $existing;
+                }
 
-            $order = $this->create($customer, $items);
-            Cache::put($cacheKey, $order->getKey(), now()->addDay());
+                $order = $this->create($customer, $startAt, $days, $vehicleIds);
+                Cache::put($cacheKey, $order->getKey(), now()->addDay());
 
-            return $order;
-        });
+                return $order;
+            });
+        } catch (LockTimeoutException) {
+            throw ValidationException::withMessages([
+                'idempotency_key' => 'Permintaan dengan kunci yang sama sedang diproses. Coba lagi sebentar lagi.',
+            ]);
+        }
     }
 
     /**
      * Baris kendaraan dikunci (urut id, mencegah deadlock) selama pengecekan bentrok agar tidak ada pesanan
      * atau servis yang menyelip.
      *
-     * @param  list<array{vehicle_id: int|string, start_at: string, end_at: string}>  $items
+     * @param  list<int|string>  $vehicleIds
      */
-    private function create(User $customer, array $items): Order
+    private function create(User $customer, string $startAt, int $days, array $vehicleIds): Order
     {
-        return DB::transaction(function () use ($customer, $items): Order {
+        return DB::transaction(function () use ($customer, $startAt, $days, $vehicleIds): Order {
+            $this->ensureBelowPendingLimit($customer);
+
             $vehicles = Vehicle::query()
-                ->whereIn('id', collect($items)->pluck('vehicle_id')->unique())
+                ->whereIn('id', $vehicleIds)
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get()
@@ -66,28 +79,27 @@ class CreateOrder
 
             $lines = [];
 
-            foreach (array_values($items) as $index => $item) {
-                $prefix = "items.{$index}.";
-                $vehicle = $vehicles->get((int) $item['vehicle_id']);
+            foreach (array_values($vehicleIds) as $index => $vehicleId) {
+                $key = "items.{$index}.vehicle_id";
+                $vehicle = $vehicles->get((int) $vehicleId);
 
                 if (! $vehicle) {
-                    throw ValidationException::withMessages(["{$prefix}vehicle_id" => 'Kendaraan tidak ditemukan.']);
+                    throw ValidationException::withMessages([$key => 'Kendaraan tidak ditemukan.']);
                 }
 
-                $quote = $this->rentalQuote->calculate($vehicle, $item['start_at'], $item['end_at'], $prefix);
-                $this->rentalQuote->ensureAvailable($vehicle, $quote['start_at'], $quote['end_at'], $prefix);
-                $this->ensureNoOverlapWithin($lines, $vehicle, $quote, $prefix);
+                $quote = $this->rentalQuote->calculate($vehicle, $startAt, $days, $key);
+                $this->rentalQuote->ensureAvailable($vehicle, $quote['start_at'], $quote['end_at'], $key);
 
                 $lines[] = ['vehicle' => $vehicle] + $quote;
             }
 
-            $order = Order::create([
+            $order = retry(3, fn (): Order => Order::create([
                 'code' => Order::generateCode(),
                 'user_id' => $customer->getKey(),
                 'total_price' => array_sum(array_column($lines, 'subtotal')),
                 'status' => OrderStatus::Pending,
                 'expires_at' => now()->addHours(config('rental.pending_expiry_hours')),
-            ]);
+            ]), 0, fn (Throwable $exception): bool => $exception instanceof UniqueConstraintViolationException);
 
             foreach ($lines as $line) {
                 $order->items()->create([
@@ -110,29 +122,40 @@ class CreateOrder
     }
 
     /**
-     * Dua item untuk kendaraan yang sama dalam satu pesanan tidak boleh saling menahan (termasuk jeda pengembalian).
-     *
-     * @param  list<array{vehicle: Vehicle, start_at: Carbon, end_at: Carbon}>  $lines
-     * @param  array{start_at: Carbon, end_at: Carbon}  $quote
+     * @param  list<int|string>  $vehicleIds
      *
      * @throws ValidationException
      */
-    private function ensureNoOverlapWithin(array $lines, Vehicle $vehicle, array $quote, string $prefix): void
+    private function ensureVehicleCount(array $vehicleIds): void
     {
-        $buffer = config('rental.return_buffer_hours');
+        $limit = config('rental.max_vehicles_per_order');
 
-        foreach ($lines as $line) {
-            if ($line['vehicle']->isNot($vehicle)) {
-                continue;
-            }
+        if ($vehicleIds === [] || count($vehicleIds) > $limit) {
+            throw ValidationException::withMessages(['items' => "Satu pesanan berisi 1 sampai {$limit} kendaraan."]);
+        }
 
-            [$first, $second] = $line['start_at']->lte($quote['start_at']) ? [$line, $quote] : [$quote, $line];
+        if (count(array_unique($vehicleIds)) !== count($vehicleIds)) {
+            throw ValidationException::withMessages(['items' => 'Kendaraan yang sama tidak dapat dipilih dua kali dalam satu pesanan.']);
+        }
+    }
 
-            if ($second['start_at']->lt($first['end_at']->copy()->addHours($buffer))) {
-                throw ValidationException::withMessages([
-                    "{$prefix}start_at" => 'Rentang ini bertabrakan dengan item lain untuk kendaraan yang sama pada pesanan ini.',
-                ]);
-            }
+    /**
+     * Pelanggan yang masih memiliki terlalu banyak pesanan Pending tidak dapat membuat pesanan baru. Baris pelanggan
+     * dikunci agar dua permintaan bersamaan tidak sama-sama lolos.
+     *
+     * @throws ValidationException
+     */
+    private function ensureBelowPendingLimit(User $customer): void
+    {
+        User::query()->whereKey($customer->getKey())->lockForUpdate()->first();
+
+        $limit = config('rental.max_pending_orders');
+        $pending = Order::query()->whereBelongsTo($customer)->where('status', OrderStatus::Pending)->count();
+
+        if ($pending >= $limit) {
+            throw ValidationException::withMessages([
+                'items' => "Anda masih memiliki {$pending} pesanan yang belum dikonfirmasi (maksimal {$limit}). Selesaikan atau batalkan pesanan tersebut sebelum membuat pesanan baru.",
+            ]);
         }
     }
 }

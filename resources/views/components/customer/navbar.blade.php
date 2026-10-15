@@ -3,9 +3,6 @@
         ['label' => 'Beranda', 'route' => 'home', 'pattern' => 'home'],
         ['label' => 'Kendaraan', 'route' => 'vehicles.index', 'pattern' => 'vehicles.*'],
     ];
-
-    $customer = auth()->check() && ! auth()->user()->isStaff();
-    $cartCount = $customer ? count(session(\App\Services\CheckoutCart::SESSION_KEY, [])) : 0;
 @endphp
 
 <nav class="navbar navbar-expand-lg customer-navbar sticky-top">
@@ -29,7 +26,7 @@
                             <a href="{{ route($link['route']) }}" @class(['nav-link', 'active' => request()->routeIs($link['pattern'])])>{{ $link['label'] }}</a>
                         </li>
                     @endforeach
-                    @if ($customer)
+                    @if ($isCustomer)
                         <li class="nav-item">
                             <a href="{{ route('orders.index') }}" @class(['nav-link', 'active' => request()->routeIs('orders.*')])>Pesanan Saya</a>
                         </li>
@@ -38,7 +35,7 @@
 
                 <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0">
                     @auth
-                        @if ($customer)
+                        @if ($isCustomer)
                             <a href="{{ route('checkout.show') }}" class="btn btn-outline-primary position-relative">
                                 Pesanan
                                 @if ($cartCount > 0)

@@ -20,7 +20,7 @@
             </div>
 
             <div class="col-12 col-md-6 col-lg-4">
-                <p class="footer-heading">Jam layanan kantor</p>
+                <p class="footer-heading">Jam layanan kantor ({{ config('rental.timezone_label') }})</p>
                 <p class="small text-body-secondary mb-2">Booking langsung di kantor. Pemesanan online, ambil, dan kembali dilayani 24 jam.</p>
                 <dl class="footer-hours small mb-0">
                     @foreach ($hours as $day)

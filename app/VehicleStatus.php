@@ -10,6 +10,7 @@ enum VehicleStatus: string
     case Available = 'available';
     case Booked = 'booked';
     case Rented = 'rented';
+    case Overdue = 'overdue';
     case Servicing = 'servicing';
     case Hidden = 'hidden';
 
@@ -19,6 +20,7 @@ enum VehicleStatus: string
             self::Available => 'Tersedia',
             self::Booked => 'Dipesan',
             self::Rented => 'Disewa',
+            self::Overdue => 'Belum kembali',
             self::Servicing => 'Servis',
             self::Hidden => 'Tidak tampil',
         };
@@ -33,6 +35,7 @@ enum VehicleStatus: string
             self::Available => 'status-lunas',
             self::Booked => 'status-progress',
             self::Rented => 'status-pending',
+            self::Overdue => 'status-batal',
             self::Servicing => 'status-progress',
             self::Hidden => 'status-batal',
         };

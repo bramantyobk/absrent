@@ -30,7 +30,7 @@ class CatalogVehicleResource extends JsonResource
             'color' => $this->color,
             'price_per_day' => $this->price_per_day,
             'price_per_hour' => $this->price_per_hour,
-            'energy_capacity' => $this->energy_capacity,
+            'energy_capacity' => $this->energy_capacity === null ? null : (float) $this->energy_capacity,
             'energy_unit' => $this->drive_type?->energyUnit(),
             'description' => $this->description,
             'photo_url' => $this->photo_url,

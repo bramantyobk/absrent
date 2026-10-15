@@ -6,6 +6,7 @@ use App\InspectionType;
 use App\Models\OrderItem;
 use App\Models\Vehicle;
 use App\Models\VehicleSchedule;
+use App\OrderStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
@@ -26,9 +27,12 @@ class VehicleTimeline
         $orders = $vehicle->orderItems()
             ->with(['order.user', 'inspections'])
             ->latest('start_at')
+            ->latest('id')
             ->limit(self::LIMIT)
             ->get()
+            ->toBase()
             ->map(function (OrderItem $item) use ($buffer): array {
+                $isOverdue = $item->order->status === OrderStatus::Rented && $item->end_at->copy()->addHours($buffer)->lte(now());
                 $odometerStart = $item->inspections->firstWhere('type', InspectionType::Pickup)?->odometer_km;
                 $odometerEnd = $item->inspections->firstWhere('type', InspectionType::Return)?->odometer_km;
 
@@ -36,11 +40,11 @@ class VehicleTimeline
                     'kind' => 'order',
                     'start_at' => $item->start_at,
                     'end_at' => $item->end_at,
-                    'free_at' => $item->end_at->copy()->addHours($buffer),
+                    'free_at' => $isOverdue ? null : $item->end_at->copy()->addHours($buffer),
                     'title' => $item->order->code,
                     'subtitle' => $item->order->user->name,
-                    'status_label' => $item->order->status->label(),
-                    'status_class' => $item->order->status->badgeClass(),
+                    'status_label' => $isOverdue ? 'Belum kembali' : $item->order->status->label(),
+                    'status_class' => $isOverdue ? 'status-batal' : $item->order->status->badgeClass(),
                     'odometer_start' => $odometerStart,
                     'odometer_end' => $odometerEnd,
                     'distance_km' => $odometerStart !== null && $odometerEnd !== null ? $odometerEnd - $odometerStart : null,
@@ -51,8 +55,10 @@ class VehicleTimeline
 
         $schedules = $vehicle->schedules()
             ->latest('start_at')
+            ->latest('id')
             ->limit(self::LIMIT)
             ->get()
+            ->toBase()
             ->map(fn (VehicleSchedule $schedule): array => [
                 'kind' => 'schedule',
                 'start_at' => $schedule->start_at,
@@ -69,6 +75,8 @@ class VehicleTimeline
                 'schedule' => $schedule,
             ]);
 
-        return $orders->concat($schedules)->sortByDesc(fn (array $row) => $row['start_at']->getTimestamp())->values();
+        return $orders->concat($schedules)
+            ->sort(fn (array $a, array $b): int => [$b['start_at']->getTimestamp(), $b['kind']] <=> [$a['start_at']->getTimestamp(), $a['kind']])
+            ->values();
     }
 }

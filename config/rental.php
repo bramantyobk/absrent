@@ -52,4 +52,52 @@ return [
 
     'pending_expiry_hours' => (int) env('RENTAL_PENDING_EXPIRY_HOURS', 24),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Batas pesanan Pending per pelanggan
+    |--------------------------------------------------------------------------
+    |
+    | Pesanan Pending menahan jadwal kendaraan. Batas ini mencegah satu
+    | pelanggan memblokir banyak unit dengan pesanan yang belum dikonfirmasi.
+    |
+    */
+
+    'max_pending_orders' => (int) env('RENTAL_MAX_PENDING_ORDERS', 3),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tunggu kunci idempotensi checkout (detik)
+    |--------------------------------------------------------------------------
+    |
+    | Lama menunggu bila permintaan dengan Idempotency-Key yang sama masih diproses.
+    | Lewat dari ini, klien menerima kesalahan validasi dan boleh mencoba lagi.
+    |
+    */
+
+    'checkout_lock_wait_seconds' => (int) env('RENTAL_CHECKOUT_LOCK_WAIT_SECONDS', 5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maksimal kendaraan per pesanan
+    |--------------------------------------------------------------------------
+    |
+    | Satu pesanan memakai satu periode (waktu mulai dan durasi yang sama) untuk
+    | semua kendaraannya. Kendaraan tambahan ditambah satu kali di halaman pesanan.
+    |
+    */
+
+    'max_vehicles_per_order' => (int) env('RENTAL_MAX_VEHICLES_PER_ORDER', 2),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Label zona waktu
+    |--------------------------------------------------------------------------
+    |
+    | Semua waktu sewa mengikuti lokasi perusahaan (zona aplikasi) dan diberi
+    | label ini di UI.
+    |
+    */
+
+    'timezone_label' => env('RENTAL_TIMEZONE_LABEL', 'WIB'),
+
 ];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CompanyProfile;
 use App\Models\Order;
+use App\Services\WhatsAppLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -20,7 +21,7 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(Order $order): View
+    public function show(Order $order, WhatsAppLink $whatsApp): View
     {
         Gate::authorize('view', $order);
 
@@ -28,7 +29,7 @@ class OrderController extends Controller
 
         return view('orders.show', [
             'order' => $order,
-            'supportUrl' => CompanyProfile::current()->supportWhatsAppUrl("Halo, saya butuh bantuan untuk pesanan {$order->code}."),
+            'supportUrl' => $whatsApp->toSupport(CompanyProfile::current(), "Halo, saya butuh bantuan untuk pesanan {$order->code}."),
         ]);
     }
 }

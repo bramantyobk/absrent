@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CheckoutItemController;
+use App\Http\Controllers\CheckoutRescheduleController;
 use App\Http\Controllers\Dashboard\BankAccountController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
@@ -27,8 +29,9 @@ Route::get('/vehicles/{vehicle}', [VehicleCatalogController::class, 'show'])->na
 Route::middleware(['auth', 'active', 'role:user'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-    Route::post('/checkout/items/{vehicle}', [CheckoutController::class, 'addItem'])->name('checkout.items.store');
-    Route::delete('/checkout/items/{index}', [CheckoutController::class, 'removeItem'])->whereNumber('index')->name('checkout.items.destroy');
+    Route::post('/checkout/items/{vehicle}', [CheckoutItemController::class, 'store'])->name('checkout.items.store');
+    Route::post('/checkout/reschedule', [CheckoutRescheduleController::class, 'store'])->name('checkout.reschedule');
+    Route::delete('/checkout/items/{index}', [CheckoutItemController::class, 'destroy'])->whereNumber('index')->name('checkout.items.destroy');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');

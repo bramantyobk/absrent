@@ -7,6 +7,7 @@ use App\Actions\Vehicles\DeleteVehicle;
 use App\Actions\Vehicles\UpdateVehicle;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVehicleRequest;
+use App\Http\Requests\UpdateVehicleRentalLimitRequest;
 use App\Http\Requests\UpdateVehicleRequest;
 use App\Http\Requests\VehicleFilterRequest;
 use App\Models\EquipmentItem;
@@ -17,6 +18,7 @@ use App\VehicleDriveType;
 use App\VehicleScheduleType;
 use App\VehicleType;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -72,9 +74,11 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function show(Vehicle $vehicle, VehicleTimeline $timeline, VehicleFreeWindows $freeWindows): View
+    public function show(Request $request, Vehicle $vehicle, VehicleTimeline $timeline, VehicleFreeWindows $freeWindows): View
     {
         Gate::authorize('view', $vehicle);
+
+        $errors = $request->session()->get('errors');
 
         return view('dashboard.vehicles.show', [
             'vehicle' => $vehicle,
@@ -82,6 +86,10 @@ class VehicleController extends Controller
             'timeline' => $timeline->for($vehicle),
             'freeWindows' => $freeWindows->for($vehicle),
             'scheduleTypes' => VehicleScheduleType::cases(),
+            'freeWindowHorizonDays' => VehicleFreeWindows::HORIZON_DAYS,
+            'rentalLimitMaxDays' => UpdateVehicleRentalLimitRequest::MAX_DAYS,
+            'autoOpenModal' => collect(['schedule' => 'scheduleModal', 'odometer' => 'odometerModal', 'rental_limit' => 'rentalLimitModal'])
+                ->first(fn (string $modal, string $bag): bool => (bool) $errors?->getBag($bag)->any()),
             'equipment' => EquipmentItem::query()->active()->forCategory($vehicle->type)->ordered()->get(),
         ]);
     }

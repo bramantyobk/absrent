@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Services\CheckoutCart;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Checkout lewat API: daftar item dikirim dalam body. Header `Idempotency-Key` mencegah pesanan ganda.
+ * Checkout lewat API: satu periode (waktu mulai + hari) untuk semua kendaraan. Header `Idempotency-Key` mencegah pesanan ganda.
  */
 class StoreCheckoutRequest extends FormRequest
 {
@@ -22,11 +21,19 @@ class StoreCheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'items' => ['required', 'array', 'min:1', 'max:'.CheckoutCart::MAX_ITEMS],
-            'items.*.vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
-            'items.*.start_at' => ['required', 'date'],
-            'items.*.end_at' => ['required', 'date'],
+            'start_at' => ['required', 'date'],
+            'days' => ['required', 'integer', 'min:1', 'max:30'],
+            'items' => ['required', 'array', 'min:1', 'max:'.config('rental.max_vehicles_per_order')],
+            'items.*.vehicle_id' => ['required', 'integer', 'distinct', 'exists:vehicles,id'],
         ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function vehicleIds(): array
+    {
+        return array_map('intval', array_column($this->validated('items'), 'vehicle_id'));
     }
 
     public function idempotencyKey(): ?string

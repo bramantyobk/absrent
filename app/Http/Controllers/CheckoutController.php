@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Orders\CreateOrder;
-use App\Http\Requests\RentalPeriodRequest;
-use App\Models\Vehicle;
 use App\Services\CheckoutCart;
+use App\Services\RentalQuote;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,43 +12,41 @@ use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    public function show(CheckoutCart $cart): View
+    public function show(CheckoutCart $cart, RentalQuote $rentalQuote): View
     {
         $lines = $cart->lines();
+        $first = $lines->first();
 
         return view('checkout.show', [
             'lines' => $lines,
             'total' => $lines->sum('subtotal'),
             'hasInvalidLine' => $lines->contains(fn (array $line): bool => $line['error'] !== null),
+            'startLabel' => $first ? $rentalQuote->label($first['start_at']) : null,
+            'endLabel' => $first ? $rentalQuote->label($first['end_at']) : null,
+            'days' => $first['days'] ?? null,
+            'addVehicleUrl' => $first ? route('vehicles.index', ['start_at' => $first['start_at']->format('Y-m-d\TH:i'), 'days' => $first['days']]) : route('vehicles.index'),
+            'canAddMore' => $cart->canAddMore(),
+            'canReschedule' => $cart->canReschedule(),
+            'maxVehicles' => config('rental.max_vehicles_per_order'),
             'idempotencyKey' => (string) Str::uuid(),
         ]);
     }
 
-    public function addItem(RentalPeriodRequest $request, Vehicle $vehicle, CheckoutCart $cart): RedirectResponse
-    {
-        abort_unless($vehicle->is_available, 404);
-
-        $cart->add($vehicle, $request->validated('start_at'), $request->validated('end_at'));
-
-        return redirect()
-            ->route('checkout.show')
-            ->with('status', "{$vehicle->brand} {$vehicle->model} ditambahkan ke pesanan.");
-    }
-
-    public function removeItem(int $index, CheckoutCart $cart): RedirectResponse
-    {
-        $cart->remove($index);
-
-        return redirect()->route('checkout.show')->with('status', 'Kendaraan dihapus dari pesanan.');
-    }
-
     public function store(Request $request, CheckoutCart $cart, CreateOrder $createOrder): RedirectResponse
     {
-        if ($cart->isEmpty()) {
+        $period = $cart->period();
+
+        if ($cart->isEmpty() || $period === null) {
             return redirect()->route('checkout.show')->with('error', 'Pilih kendaraan dan jadwal terlebih dahulu.');
         }
 
-        $order = $createOrder->handle($request->user(), $cart->items(), $request->string('idempotency_key')->limit(100, '')->toString() ?: null);
+        $order = $createOrder->handle(
+            $request->user(),
+            $period['start_at'],
+            $period['days'],
+            $cart->vehicleIds(),
+            $request->string('idempotency_key')->limit(100, '')->toString() ?: null,
+        );
 
         $cart->clear();
 

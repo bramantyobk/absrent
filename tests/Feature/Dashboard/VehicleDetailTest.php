@@ -152,3 +152,57 @@ it('rejects odometer updates from customers', function () {
         ->post(route('dashboard.vehicles.odometer.store', $vehicle), ['odometer_km' => '10'])
         ->assertForbidden();
 });
+
+it('orders schedules that start at the same time from newest to oldest', function () {
+    $vehicle = Vehicle::factory()->create();
+    $older = VehicleSchedule::factory()->for($vehicle)->between('2026-10-20 09:00', '2026-10-20 12:00')->create(['note' => 'Lama']);
+    $newer = VehicleSchedule::factory()->for($vehicle)->between('2026-10-20 09:00', '2026-10-20 13:00')->create(['note' => 'Baru']);
+
+    $notes = $this->actingAs(User::factory()->operator()->create())
+        ->get(route('dashboard.vehicles.show', $vehicle))
+        ->assertOk()
+        ->viewData('timeline')
+        ->pluck('note')
+        ->all();
+
+    expect($notes)->toBe(['Baru', 'Lama']);
+});
+
+it('shows the vehicle detail when it has maintenance but no orders, and when it has neither', function () {
+    $servicing = Vehicle::factory()->create();
+    VehicleSchedule::factory()->for($servicing)->between('2026-10-20 09:00', '2026-10-20 12:00')->create();
+    $empty = Vehicle::factory()->create();
+    $this->actingAs(User::factory()->operator()->create());
+
+    $this->get(route('dashboard.vehicles.show', $servicing))->assertOk();
+    $this->get(route('dashboard.vehicles.show', $empty))->assertOk();
+});
+
+it('shows the vehicle detail when it has orders but no maintenance', function () {
+    $vehicle = Vehicle::factory()->create();
+    holdVehicle($vehicle, OrderStatus::Booking, '2026-10-20 09:00', '2026-10-21 09:00');
+
+    $this->actingAs(User::factory()->operator()->create())->get(route('dashboard.vehicles.show', $vehicle))->assertOk();
+});
+
+it('shows a late rented order as not returned and waiting to be completed instead of a free time', function () {
+    $vehicle = Vehicle::factory()->create();
+    holdVehicle($vehicle, OrderStatus::Rented, '2026-10-05 08:00', '2026-10-07 08:00');
+
+    $this->actingAs(User::factory()->operator()->create())
+        ->get(route('dashboard.vehicles.show', $vehicle))
+        ->assertOk()
+        ->assertSee('Belum kembali')
+        ->assertSee('Menunggu diselesaikan')
+        ->assertDontSee('07/10/2026 11:00');
+});
+
+it('still shows the free time of an order that ended normally', function () {
+    $vehicle = Vehicle::factory()->create();
+    holdVehicle($vehicle, OrderStatus::Completed, '2026-10-05 08:00', '2026-10-07 08:00');
+
+    $this->actingAs(User::factory()->operator()->create())
+        ->get(route('dashboard.vehicles.show', $vehicle))
+        ->assertSee('07/10/2026 11:00')
+        ->assertDontSee('Menunggu diselesaikan');
+});

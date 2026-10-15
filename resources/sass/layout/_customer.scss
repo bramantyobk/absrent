@@ -276,6 +276,11 @@
     }
 }
 
+// Opsi durasi memuat hari dan tanggal pengembalian, jadi dibuat sedikit lebih kecil agar muat di layar 360px
+.booking-card .form-select {
+    font-size: 0.875rem;
+}
+
 .quote-result {
     min-height: 1.5rem;
     font-weight: 600;

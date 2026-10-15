@@ -33,6 +33,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::get('vehicles', [CatalogVehicleController::class, 'index'])->name('vehicles.index');
     Route::get('vehicles/{vehicle}', [CatalogVehicleController::class, 'show'])->name('vehicles.show');
     Route::get('vehicles/{vehicle}/quote', [CatalogVehicleController::class, 'quote'])->name('vehicles.quote');
+    Route::get('vehicles/{vehicle}/return-options', [CatalogVehicleController::class, 'returnOptions'])->name('vehicles.return-options');
 
     Route::middleware(['auth:sanctum', 'active', 'role:user'])->group(function () {
         Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');

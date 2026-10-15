@@ -24,7 +24,7 @@
                         <div class="flex-grow-1">
                             <h2 class="order-line-title">{{ $item->vehicle->brand }} {{ $item->vehicle->model }}</h2>
                             <p class="small text-body-secondary mb-1">
-                                {{ $item->start_at->format('d/m/Y H:i') }} &ndash; {{ $item->end_at->format('d/m/Y H:i') }}
+                                {{ $item->start_at->format('d/m/Y H:i') }} &ndash; {{ $item->end_at->format('d/m/Y H:i') }} {{ config('rental.timezone_label') }}
                             </p>
                             <p class="small mb-0">
                                 {{ $item->days }} hari &times; Rp{{ number_format($item->unit_price, 0, ',', '.') }}

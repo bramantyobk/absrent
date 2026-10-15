@@ -16,6 +16,8 @@ class VehicleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $status = $this->displayStatus();
+
         return [
             'id' => $this->id,
             'brand' => $this->brand,
@@ -29,11 +31,11 @@ class VehicleResource extends JsonResource
             'price_per_hour' => $this->price_per_hour,
             'photo_url' => $this->photo_url,
             'is_available' => $this->is_available,
-            'status' => $this->displayStatus()->value,
-            'status_label' => $this->displayStatus()->label(),
+            'status' => $status->value,
+            'status_label' => $status->label(),
             'drive_type' => $this->drive_type?->value,
             'drive_type_label' => $this->drive_type?->label(),
-            'energy_capacity' => $this->energy_capacity,
+            'energy_capacity' => $this->energy_capacity === null ? null : (float) $this->energy_capacity,
             'energy_unit' => $this->drive_type?->energyUnit(),
             'description' => $this->description,
             'odometer_km' => $this->odometer_km,

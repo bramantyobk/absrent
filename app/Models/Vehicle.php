@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\OrderStatus;
+use App\Services\RentalQuote;
 use App\Services\VehiclePhotoStorage;
 use App\VehicleDriveType;
 use App\VehicleStatus;
@@ -17,7 +18,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['brand', 'model', 'plate_number', 'type', 'year', 'color', 'price_per_day', 'price_per_hour', 'photo', 'is_available', 'drive_type', 'energy_capacity', 'description', 'odometer_km', 'max_rental_days'])]
@@ -34,7 +34,7 @@ class Vehicle extends Model
         return [
             'type' => VehicleType::class,
             'drive_type' => VehicleDriveType::class,
-            'energy_capacity' => 'float',
+            'energy_capacity' => 'decimal:1',
             'is_available' => 'boolean',
         ];
     }
@@ -98,6 +98,9 @@ class Vehicle extends Model
         $query->withExists([
             'orderItems as is_rented_now' => fn (Builder $items) => $items
                 ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented)),
+            'orderItems as is_overdue_now' => fn (Builder $items) => $items
+                ->where('end_at', '<', $now->copy()->subHours(config('rental.return_buffer_hours')))
+                ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented)),
             'orderItems as is_booked_now' => fn (Builder $items) => $items
                 ->holdingBetween($now, $untilNextSecond)
                 ->whereHas('order', fn (Builder $order) => $order->whereIn('status', [OrderStatus::Pending, OrderStatus::Booking])),
@@ -112,6 +115,10 @@ class Vehicle extends Model
         $isRented = $this->flagOrQuery('is_rented_now', fn () => $this->orderItems()
             ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented))
             ->exists());
+        $isOverdue = $this->flagOrQuery('is_overdue_now', fn () => $this->orderItems()
+            ->where('end_at', '<', $now->copy()->subHours(config('rental.return_buffer_hours')))
+            ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented))
+            ->exists());
         $isServicing = $this->flagOrQuery('is_servicing_now', fn () => $this->schedules()
             ->overlapping($now, $now->copy()->addSecond())
             ->exists());
@@ -121,6 +128,7 @@ class Vehicle extends Model
             ->exists());
 
         return match (true) {
+            $isOverdue => VehicleStatus::Overdue,
             $isRented => VehicleStatus::Rented,
             $isServicing => VehicleStatus::Servicing,
             $isBooked => VehicleStatus::Booked,
@@ -184,10 +192,10 @@ class Vehicle extends Model
     }
 
     /**
-     * Filter katalog pelanggan: cari, kategori, tipe, dan (bila kedua tanggal diisi) hanya unit yang kosong pada rentang itu.
+     * Filter katalog pelanggan: cari, kategori, tipe, dan (bila waktu mulai dan durasi diisi) hanya unit yang kosong pada periode itu, termasuk jeda pengembalian.
      *
      * @param  Builder<Vehicle>  $query
-     * @param  array{search?: ?string, type?: ?string, drive_type?: ?string, start_at?: ?string, end_at?: ?string}  $filters
+     * @param  array{search?: ?string, type?: ?string, drive_type?: ?string, start_at?: ?string, days?: int|string|null}  $filters
      */
     #[Scope]
     protected function catalogFilter(Builder $query, array $filters): void
@@ -199,8 +207,12 @@ class Vehicle extends Model
             ->when($filters['type'] ?? null, fn (Builder $query, string $type) => $query->where('type', $type))
             ->when($filters['drive_type'] ?? null, fn (Builder $query, string $driveType) => $query->where('drive_type', $driveType))
             ->when(
-                ($filters['start_at'] ?? null) && ($filters['end_at'] ?? null),
-                fn (Builder $query) => $query->availableBetween(Carbon::parse($filters['start_at']), Carbon::parse($filters['end_at']))
+                ($filters['start_at'] ?? null) && ($filters['days'] ?? null),
+                function (Builder $query) use ($filters): void {
+                    $start = RentalQuote::parse($filters['start_at']);
+
+                    $query->availableBetween($start, $start->copy()->addDays((int) $filters['days'])->addHours(config('rental.return_buffer_hours')));
+                }
             );
     }
 
@@ -213,7 +225,7 @@ class Vehicle extends Model
             return null;
         }
 
-        $value = rtrim(rtrim(number_format($this->energy_capacity, 1, ',', '.'), '0'), ',');
+        $value = rtrim(rtrim(number_format((float) $this->energy_capacity, 1, ',', '.'), '0'), ',');
 
         return "{$value} {$this->drive_type->energyUnit()}";
     }

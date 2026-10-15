@@ -29,6 +29,7 @@ class VehicleFreeWindows
             ->holdingBetween($from, $horizon)
             ->with('order')
             ->get()
+            ->toBase()
             ->map(function ($item) use ($buffer, $from, $horizon): array {
                 $releasedAt = $item->end_at->copy()->addHours($buffer);
                 $isLate = $item->order->status === OrderStatus::Rented && $releasedAt->lte($from);
@@ -39,6 +40,7 @@ class VehicleFreeWindows
                 $vehicle->schedules()
                     ->overlapping($from, $horizon)
                     ->get()
+                    ->toBase()
                     ->map(fn ($schedule): array => [$schedule->start_at, $schedule->end_at])
             )
             ->sortBy(fn (array $interval) => $interval[0]->getTimestamp())

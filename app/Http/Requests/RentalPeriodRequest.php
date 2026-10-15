@@ -6,7 +6,8 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Jadwal sewa satu kendaraan. Aturan durasi dan ketersediaan dijaga RentalQuote.
+ * Periode sewa satu kendaraan: waktu mulai (WIB bila tanpa offset) dan jumlah hari. Aturan durasi dan ketersediaan
+ * dijaga RentalQuote.
  */
 class RentalPeriodRequest extends FormRequest
 {
@@ -22,7 +23,7 @@ class RentalPeriodRequest extends FormRequest
     {
         return [
             'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date'],
+            'days' => ['required', 'integer', 'min:1', 'max:30'],
         ];
     }
 }

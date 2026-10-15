@@ -11,9 +11,15 @@ beforeEach(function () {
     $this->travelTo('2026-10-12 10:00:00');
 });
 
-function checkoutPayload(Vehicle $vehicle, array $overrides = []): array
+function checkoutPayload(Vehicle|array $vehicles, array $overrides = []): array
 {
-    return ['items' => [$overrides + ['vehicle_id' => $vehicle->id, 'start_at' => '2026-10-14T09:00:00+00:00', 'end_at' => '2026-10-16T09:00:00+00:00']]];
+    $vehicles = $vehicles instanceof Vehicle ? [$vehicles] : $vehicles;
+
+    return $overrides + [
+        'start_at' => '2026-10-14T09:00:00+07:00',
+        'days' => 2,
+        'items' => array_map(fn (Vehicle $vehicle): array => ['vehicle_id' => $vehicle->id], $vehicles),
+    ];
 }
 
 it('rejects guests, staff, and inactive customers on the order endpoints', function (string $method, string $route, bool $needsOrder) {
@@ -45,19 +51,51 @@ it('creates a pending order with a pending transaction through the api', functio
     expect(Order::sole()->user_id)->toBe($customer->id)->and(Transaction::count())->toBe(1);
 });
 
-it('creates one order for several vehicles with their own schedules', function () {
+it('creates one order for two vehicles on the same period and rejects a third', function () {
     $genio = Vehicle::factory()->create(['price_per_day' => 75000]);
     $avanza = Vehicle::factory()->car()->create(['price_per_day' => 350000]);
+    $this->actingAs(User::factory()->create());
+
+    $this->postJson(route('api.v1.checkout.store'), checkoutPayload([$genio, $avanza], ['days' => 3]))
+        ->assertCreated()
+        ->assertJsonPath('data.total_price', 3 * 75000 + 3 * 350000)
+        ->assertJsonCount(2, 'data.items');
+
+    expect(OrderItem::pluck('start_at')->unique())->toHaveCount(1)->and(OrderItem::pluck('end_at')->unique())->toHaveCount(1);
+
+    $this->postJson(route('api.v1.checkout.store'), checkoutPayload(Vehicle::factory()->count(3)->create()->all(), ['start_at' => '2026-10-20T09:00:00+07:00']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('items');
+});
+
+it('rejects the same vehicle twice in one order', function () {
+    $vehicle = Vehicle::factory()->create();
 
     $this->actingAs(User::factory()->create())
-        ->postJson(route('api.v1.checkout.store'), ['items' => [
-            ['vehicle_id' => $genio->id, 'start_at' => '2026-10-14T09:00', 'end_at' => '2026-10-15T09:00'],
-            ['vehicle_id' => $avanza->id, 'start_at' => '2026-10-20T09:00', 'end_at' => '2026-10-23T09:00'],
-        ]])
-        ->assertCreated()
-        ->assertJsonPath('data.total_price', 75000 + 3 * 350000)
-        ->assertJsonCount(2, 'data.items');
+        ->postJson(route('api.v1.checkout.store'), checkoutPayload([$vehicle, $vehicle]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('items.0.vehicle_id');
+
+    expect(Order::count())->toBe(0);
 });
+
+it('converts times with an offset to the company time zone and reads times without an offset as company time', function (string $startAt, string $stored) {
+    config(['app.timezone' => 'Asia/Jakarta']);
+    date_default_timezone_set('Asia/Jakarta');
+    $vehicle = Vehicle::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->postJson(route('api.v1.checkout.store'), checkoutPayload($vehicle, ['start_at' => $startAt]))
+        ->assertCreated();
+
+    expect(OrderItem::sole()->start_at->toDateTimeString())->toBe($stored);
+})->with([
+    'Bali (+08:00)' => ['2026-10-14T09:00:00+08:00', '2026-10-14 08:00:00'],
+    'UTC (Z)' => ['2026-10-14T02:00:00Z', '2026-10-14 09:00:00'],
+    'UTC (+00:00)' => ['2026-10-14T09:00:00+00:00', '2026-10-14 16:00:00'],
+    'Jakarta (+07:00)' => ['2026-10-14T09:00:00+07:00', '2026-10-14 09:00:00'],
+    'no offset' => ['2026-10-14T09:00:00', '2026-10-14 09:00:00'],
+]);
 
 it('replays an idempotent request with the same order and a 200 status', function () {
     $this->actingAs(User::factory()->create());
@@ -78,13 +116,15 @@ it('validates the checkout payload', function (array $payload, string $field) {
 
     expect(Order::count())->toBe(0);
 })->with([
-    'no items' => [['items' => []], 'items'],
-    'unknown vehicle' => [['items' => [['vehicle_id' => 999999, 'start_at' => '2026-10-14T09:00', 'end_at' => '2026-10-16T09:00']]], 'items.0.vehicle_id'],
-    'missing dates' => [['items' => [['vehicle_id' => 1]]], 'items.0.start_at'],
+    'no items' => [['start_at' => '2026-10-14T09:00:00+07:00', 'days' => 2, 'items' => []], 'items'],
+    'unknown vehicle' => [['start_at' => '2026-10-14T09:00:00+07:00', 'days' => 2, 'items' => [['vehicle_id' => 999999]]], 'items.0.vehicle_id'],
+    'missing start' => [['days' => 2, 'items' => [['vehicle_id' => 1]]], 'start_at'],
+    'missing days' => [['start_at' => '2026-10-14T09:00:00+07:00', 'items' => [['vehicle_id' => 1]]], 'days'],
+    'zero days' => [['start_at' => '2026-10-14T09:00:00+07:00', 'days' => 0, 'items' => [['vehicle_id' => 1]]], 'days'],
 ]);
 
-it('rejects rule violations and conflicts with errors keyed by item', function (array $overrides, string $field) {
-    $vehicle = Vehicle::factory()->create();
+it('rejects rule violations and conflicts with errors keyed by field', function (array $overrides, string $field) {
+    $vehicle = Vehicle::factory()->create(['max_rental_days' => 5]);
     holdVehicle($vehicle, OrderStatus::Booking, '2026-10-20 08:00', '2026-10-21 08:00');
     $before = Order::count();
 
@@ -95,13 +135,23 @@ it('rejects rule violations and conflicts with errors keyed by item', function (
 
     expect(Order::count())->toBe($before);
 })->with([
-    'past start' => [['start_at' => '2026-10-11T09:00:00+00:00', 'end_at' => '2026-10-13T09:00:00+00:00'], 'items.0.start_at'],
-    'under 24 hours' => [['end_at' => '2026-10-15T08:00:00+00:00'], 'items.0.end_at'],
-    'over 7 days' => [['end_at' => '2026-10-22T09:00:00+00:00'], 'items.0.end_at'],
-    'overlapping a booking' => [['start_at' => '2026-10-19T09:00:00+00:00', 'end_at' => '2026-10-21T09:00:00+00:00'], 'items.0.start_at'],
+    'past start' => [['start_at' => '2026-10-11T09:00:00+07:00'], 'start_at'],
+    'over the vehicle limit' => [['days' => 6], 'items.0.vehicle_id'],
+    'overlapping a booking' => [['start_at' => '2026-10-19T09:00:00+07:00'], 'items.0.vehicle_id'],
+    'ending inside the return buffer before a booking' => [['start_at' => '2026-10-18T05:01:00+07:00'], 'items.0.vehicle_id'],
 ]);
 
-it('lists and shows only the customer own orders', function () {
+it('returns 422 when a customer already has the maximum number of pending orders', function () {
+    $customer = User::factory()->create();
+    Order::factory()->count(3)->for($customer)->create();
+
+    $this->actingAs($customer)
+        ->postJson(route('api.v1.checkout.store'), checkoutPayload(Vehicle::factory()->create()))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('items');
+});
+
+it('lists and shows only the customer own orders and returns 404 for another customer order', function () {
     $customer = User::factory()->create();
     $own = Order::factory()->for($customer)->create(['total_price' => 100000]);
     OrderItem::factory()->for($own, 'order')->for(Vehicle::factory()->create(), 'vehicle')->create();
@@ -116,5 +166,5 @@ it('lists and shows only the customer own orders', function () {
         ->assertJsonPath('data.0.code', $own->code);
 
     $this->getJson(route('api.v1.orders.show', $own))->assertOk()->assertJsonPath('data.code', $own->code);
-    $this->getJson(route('api.v1.orders.show', $other))->assertForbidden();
+    $this->getJson(route('api.v1.orders.show', $other))->assertNotFound();
 });

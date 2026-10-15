@@ -4,12 +4,6 @@
 
 @php
     $inputFormat = 'Y-m-d\TH:i';
-    $prefill = function (string $key) use ($inputFormat): string {
-        $value = old($key, request($key));
-
-        return $value ? rescue(fn () => \Illuminate\Support\Carbon::parse($value)->format($inputFormat), '', false) : '';
-    };
-    $isCustomer = auth()->check() && ! auth()->user()->isStaff();
 @endphp
 
 @section('content')
@@ -43,12 +37,6 @@
                     <dt class="col-6 col-md-4">Kapasitas energi</dt>
                     <dd class="col-6 col-md-8">{{ $vehicle->energyCapacityLabel() }}</dd>
                 @endif
-                @if ($vehicle->price_per_hour !== null)
-                    <dt class="col-6 col-md-4">Tarif per jam (info)</dt>
-                    <dd class="col-6 col-md-8">Rp{{ number_format($vehicle->price_per_hour, 0, ',', '.') }}</dd>
-                @endif
-                <dt class="col-6 col-md-4">Durasi sewa</dt>
-                <dd class="col-6 col-md-8">{{ config('rental.min_rental_hours') }} jam sampai {{ $vehicle->effectiveMaxRentalDays() }} hari</dd>
             </dl>
 
             <h2 class="section-title fs-6">Perlengkapan</h2>
@@ -65,36 +53,61 @@
 
         <div class="col-12 col-lg-5">
             <div class="booking-card" data-rental-quote
-                data-quote-url="{{ route('api.v1.vehicles.quote', $vehicle) }}">
+                data-options-url="{{ route('api.v1.vehicles.return-options', $vehicle) }}"
+                data-selected-days="{{ $days }}">
                 <p class="booking-price">
                     <strong>Rp{{ number_format($vehicle->price_per_day, 0, ',', '.') }}</strong> <span>/ hari</span>
                 </p>
-                <p class="small text-body-secondary">Tarif dihitung per hari, dibulatkan ke atas per 24 jam.</p>
+                <p class="small text-body-secondary">Tarif dihitung per hari. Semua waktu dalam {{ $timezoneLabel }}.</p>
 
-                @if ($isCustomer)
+                @if ($isCustomer && $inCart)
+                    <div class="alert alert-info">Kendaraan ini sudah ada di pesanan Anda.</div>
+                    <a href="{{ route('checkout.show') }}" class="btn btn-primary w-100">Lihat pesanan</a>
+                @elseif ($isCustomer && $isLocked && ! $canAddMore)
+                    <div class="alert alert-info">Satu pesanan maksimal {{ $maxVehicles }} kendaraan.</div>
+                    <a href="{{ route('checkout.show') }}" class="btn btn-primary w-100">Lihat pesanan</a>
+                @elseif ($isCustomer)
                     <form method="POST" action="{{ route('checkout.items.store', $vehicle) }}" novalidate>
                         @csrf
 
-                        <div class="mb-3">
-                            <label for="start_at" class="form-label">Mulai</label>
-                            <input type="datetime-local" id="start_at" name="start_at" value="{{ $prefill('start_at') }}"
-                                min="{{ now()->format($inputFormat) }}" class="form-control @error('start_at') is-invalid @enderror" required data-quote-start>
+                        @if ($isLocked)
+                            <p class="small text-body-secondary mb-2">Jadwal mengikuti pesanan Anda:</p>
+                            <p class="fw-semibold mb-3">{{ $startLabel }} {{ $timezoneLabel }}, {{ $days }} hari</p>
+                            <input type="hidden" name="start_at" value="{{ $startAt }}">
+                            <input type="hidden" name="days" value="{{ $days }}">
                             @error('start_at')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger small mb-2">{{ $message }}</div>
                             @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="end_at" class="form-label">Selesai</label>
-                            <input type="datetime-local" id="end_at" name="end_at" value="{{ $prefill('end_at') }}"
-                                class="form-control @error('end_at') is-invalid @enderror" required data-quote-end>
-                            @error('end_at')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @else
+                            <div class="mb-3">
+                                <label for="start_at" class="form-label">Mulai ({{ $timezoneLabel }})</label>
+                                <input type="datetime-local" id="start_at" name="start_at" value="{{ $startAt }}"
+                                    min="{{ now()->format('Y-m-d\TH:i') }}" class="form-control @error('start_at') is-invalid @enderror" required data-quote-start>
+                                @error('start_at')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="days" class="form-label">Durasi dan waktu pengembalian</label>
+                                <select id="days" name="days" class="form-select @error('days') is-invalid @enderror" required data-quote-days @disabled($options->isEmpty())>
+                                    @if ($options->isEmpty())
+                                        <option value="">Pilih waktu mulai terlebih dahulu</option>
+                                    @endif
+                                    @foreach ($options as $option)
+                                        <option value="{{ $option['days'] }}" data-subtotal="{{ $option['subtotal'] }}" @selected($days === $option['days'])>
+                                            {{ $option['days'] }} hari &ndash; {{ $option['end_label'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('days')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <p class="small text-danger mb-2" data-quote-notice>{{ $optionsNotice }}</p>
+                            <div class="quote-result mb-3" data-quote-result aria-live="polite"></div>
+                        @endif
 
-                        <div class="quote-result mb-3" data-quote-result aria-live="polite"></div>
-
-                        <button type="submit" class="btn btn-primary w-100">Lanjut ke pesanan</button>
+                        <button type="submit" class="btn btn-primary w-100" data-quote-submit>{{ $isLocked ? 'Tambah ke pesanan' : 'Lanjut ke pesanan' }}</button>
                     </form>
                 @elseif (auth()->check())
                     <div class="alert alert-info mb-0">Akun staf tidak dapat membuat pesanan di halaman ini. Gunakan dashboard.</div>

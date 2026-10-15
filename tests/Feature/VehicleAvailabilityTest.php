@@ -103,3 +103,19 @@ it('derives the display status from schedules, with rented ahead of servicing ah
         ->and($statuses[$future->id])->toBe(VehicleStatus::Available)
         ->and($rented->displayStatus())->toBe(VehicleStatus::Rented);
 });
+
+it('marks a rented vehicle as not returned once its return buffer has passed, and as rented before that', function () {
+    $late = Vehicle::factory()->create();
+    $onTime = Vehicle::factory()->create();
+    $justEnded = Vehicle::factory()->create();
+    holdVehicle($late, OrderStatus::Rented, '2026-10-05 08:00', '2026-10-07 08:00');
+    holdVehicle($onTime, OrderStatus::Rented, '2026-10-11 08:00', '2026-10-13 08:00');
+    holdVehicle($justEnded, OrderStatus::Rented, '2026-10-10 08:00', '2026-10-12 08:00');
+
+    $statuses = Vehicle::query()->withDisplayStatus()->get()->mapWithKeys(fn (Vehicle $vehicle) => [$vehicle->id => $vehicle->displayStatus()]);
+
+    expect($statuses[$late->id])->toBe(VehicleStatus::Overdue)
+        ->and($statuses[$onTime->id])->toBe(VehicleStatus::Rented)
+        ->and($statuses[$justEnded->id])->toBe(VehicleStatus::Rented)
+        ->and($late->displayStatus())->toBe(VehicleStatus::Overdue);
+});

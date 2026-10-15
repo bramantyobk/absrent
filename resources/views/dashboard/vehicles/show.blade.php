@@ -12,11 +12,10 @@
     $scheduleAction = old('schedule_form_action', $scheduleStoreUrl);
     $scheduleMethod = old('schedule_form_method', 'POST');
     $rentalLimitErrors = $errors->getBag('rental_limit');
-    $autoOpen = $scheduleErrors->any() ? 'scheduleModal' : ($odometerErrors->any() ? 'odometerModal' : ($rentalLimitErrors->any() ? 'rentalLimitModal' : null));
 @endphp
 
 @section('content')
-    <div data-vehicle-detail @if ($autoOpen) data-auto-open="{{ $autoOpen }}" @endif>
+    <div data-vehicle-detail @if ($autoOpenModal) data-auto-open="{{ $autoOpenModal }}" @endif>
         @include('dashboard.users._alerts')
 
         @if ($scheduleErrors->any() || $odometerErrors->any() || $rentalLimitErrors->any())
@@ -90,7 +89,7 @@
 
             <h3 class="fs-6 fw-semibold">Jendela kosong</h3>
             <p class="small text-body-secondary">
-                Waktu bebas {{ \App\Services\VehicleFreeWindows::HORIZON_DAYS }} hari ke depan (minimal {{ config('rental.min_free_window_hours') }} jam),
+                Waktu bebas {{ $freeWindowHorizonDays }} hari ke depan (minimal {{ config('rental.min_free_window_hours') }} jam),
                 sudah termasuk jeda {{ config('rental.return_buffer_hours') }} jam setelah pesanan.
             </p>
             @forelse ($freeWindows as $window)
@@ -144,7 +143,7 @@
                                         {{ $row['odometer_start'] !== null ? number_format($row['odometer_start'], 0, ',', '.').' km' : '-' }}
                                     @endif
                                 </td>
-                                <td class="text-nowrap">{{ $row['free_at']->format($dateFormat) }}</td>
+                                <td class="text-nowrap">{{ $row['free_at'] ? $row['free_at']->format($dateFormat) : 'Menunggu diselesaikan' }}</td>
                                 <td class="text-end text-nowrap">
                                     @if ($row['schedule'] && ! $row['schedule']->hasEnded())
                                         @php($schedule = $row['schedule'])
@@ -297,7 +296,7 @@
                 </div>
                 <div class="modal-body">
                     <label for="max_rental_days" class="form-label">Hari sewa maksimal (unit ini)</label>
-                    <input type="number" id="max_rental_days" name="max_rental_days" min="1" max="{{ \App\Http\Requests\UpdateVehicleRentalLimitRequest::MAX_DAYS }}"
+                    <input type="number" id="max_rental_days" name="max_rental_days" min="1" max="{{ $rentalLimitMaxDays }}"
                         value="{{ old('max_rental_days', $vehicle->max_rental_days) }}" placeholder="{{ config('rental.max_rental_days') }}" class="form-control">
                     <div class="form-text">
                         Kosongkan untuk memakai batas bawaan ({{ config('rental.max_rental_days') }} hari). Berlaku untuk pesanan berikutnya.
