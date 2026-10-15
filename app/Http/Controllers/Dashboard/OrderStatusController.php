@@ -13,7 +13,13 @@ class OrderStatusController extends Controller
 {
     public function update(ChangeOrderStatusRequest $request, Order $order, ChangeOrderStatus $changeOrderStatus): RedirectResponse
     {
-        $order = $changeOrderStatus->handle($order, OrderStatus::from($request->validated('status')));
+        $order = $changeOrderStatus->handle(
+            $order,
+            OrderStatus::from($request->validated('status')),
+            $request->user(),
+            $request->inspections(),
+            $request->validated('note'),
+        );
 
         return redirect()
             ->route('dashboard.orders.show', $order)

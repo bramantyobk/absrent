@@ -2,7 +2,9 @@
 
 use App\CancellationStatus;
 use App\Models\CancellationRequest;
+use App\Models\EquipmentItem;
 use App\Models\User;
+use App\Models\Vehicle;
 use App\OrderStatus;
 use App\TransactionStatus;
 use Illuminate\Http\UploadedFile;
@@ -48,9 +50,9 @@ it('shows an order and changes its status through the api', function () {
     Sanctum::actingAs(User::factory()->operator()->create());
 
     $this->getJson(route('api.v1.dashboard.orders.show', $order))->assertOk()->assertJsonPath('data.customer.id', $order->user_id)->assertJsonPath('data.transaction.status', 'paid');
-    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'rented'])->assertOk()->assertJsonPath('data.status', 'rented');
-    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'rented'])->assertUnprocessable()->assertJsonValidationErrors('status');
-    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'stolen'])->assertUnprocessable();
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'rented', 'inspections' => inspectionPayload($order)])->assertOk()->assertJsonPath('data.status', 'rented');
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'rented', 'inspections' => inspectionPayload($order)])->assertUnprocessable()->assertJsonValidationErrors('status');
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'refunded'])->assertUnprocessable();
 });
 
 it('verifies a transaction as paid with a proof and exposes it only through the authorized endpoint', function () {
@@ -130,4 +132,47 @@ it('lists and decides cancellation requests through the api', function () {
         ->assertJsonPath('data.status', 'approved');
 
     expect($order->refresh()->status)->toBe(OrderStatus::Refunded)->and($request->refresh()->status)->toBe(CancellationStatus::Approved);
+});
+
+it('saves pickup and return inspections with the equipment checklist through the api', function () {
+    $vehicle = Vehicle::factory()->motorcycle()->create(['odometer_km' => 100]);
+    $helmet = EquipmentItem::factory()->motorcycle()->create(['name' => 'Helm SNI', 'quantity' => 2]);
+    $order = orderWithTransaction(['status' => OrderStatus::Booking, 'expires_at' => null], ['status' => TransactionStatus::Paid], $vehicle);
+    $item = $order->items->first();
+    Sanctum::actingAs(User::factory()->operator()->create());
+
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'rented', 'inspections' => [$item->id => ['odometer_km' => 120, 'energy_level' => 100, 'equipment' => [$helmet->id => 2]]]])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'rented');
+
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'completed', 'inspections' => [$item->id => ['odometer_km' => 90, 'energy_level' => 20, 'equipment' => [$helmet->id => 2]]]])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors("inspections.{$item->id}.odometer_km");
+
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'completed', 'inspections' => [$item->id => ['odometer_km' => 190, 'energy_level' => 20, 'equipment' => [$helmet->id => 1]]]])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'completed');
+
+    $this->getJson(route('api.v1.dashboard.orders.show', $order))
+        ->assertJsonCount(2, 'data.items.0.inspections')
+        ->assertJsonPath('data.items.0.inspections.0.type', 'pickup')
+        ->assertJsonPath('data.items.0.inspections.1.odometer_km', 190)
+        ->assertJsonPath('data.items.0.inspections.1.equipment_checks.0.checked', 1);
+});
+
+it('marks a rented order as stolen through the api for admins only', function () {
+    $vehicle = Vehicle::factory()->create();
+    $order = orderWithTransaction(['status' => OrderStatus::Rented, 'expires_at' => null], ['status' => TransactionStatus::Paid], $vehicle);
+
+    Sanctum::actingAs(User::factory()->operator()->create());
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'stolen', 'note' => 'Hilang.'])->assertForbidden();
+
+    Sanctum::actingAs(User::factory()->admin()->create());
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'stolen'])->assertUnprocessable()->assertJsonValidationErrors('note');
+    $this->patchJson(route('api.v1.dashboard.orders.status', $order), ['status' => 'stolen', 'note' => 'Unit tidak dikembalikan.'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'stolen')
+        ->assertJsonPath('data.status_note', 'Unit tidak dikembalikan.');
+
+    expect($vehicle->refresh()->is_available)->toBeFalse();
 });

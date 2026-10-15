@@ -21,11 +21,13 @@ class OrderResource extends JsonResource
             'code' => $this->code,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+            'status_note' => $this->status_note,
             'total_price' => $this->total_price,
             'expires_at' => $this->expires_at,
             'created_at' => $this->created_at,
             'customer' => $this->whenLoaded('user', fn () => ['id' => $this->user->id, 'name' => $this->user->name, 'phone' => $this->user->phone]),
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($item): array => [
+                'order_item_id' => $item->id,
                 'vehicle_id' => $item->vehicle_id,
                 'vehicle_name' => "{$item->vehicle->brand} {$item->vehicle->model}",
                 'photo_url' => $item->vehicle->photo_url,
@@ -34,6 +36,14 @@ class OrderResource extends JsonResource
                 'days' => $item->days,
                 'unit_price' => $item->unit_price,
                 'subtotal' => $item->subtotal,
+                'inspections' => $item->relationLoaded('inspections') ? $item->inspections->sortBy('id')->values()->map(fn ($inspection): array => [
+                    'type' => $inspection->type->value,
+                    'odometer_km' => $inspection->odometer_km,
+                    'energy_level' => $inspection->energy_level,
+                    'equipment_checks' => $inspection->equipment_checks,
+                    'note' => $inspection->note,
+                    'inspected_at' => $inspection->inspected_at,
+                ]) : null,
             ])),
             'transaction' => $this->whenLoaded('transaction', fn () => $this->transaction ? [
                 'status' => $this->transaction->status->value,

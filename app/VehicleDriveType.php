@@ -24,4 +24,12 @@ enum VehicleDriveType: string
     {
         return $this === self::Electric ? 'kWh' : 'liter';
     }
+
+    /**
+     * Label level energi pada inspeksi: Baterai untuk listrik, Bensin untuk lainnya.
+     */
+    public function energyLabel(): string
+    {
+        return $this === self::Electric ? 'Baterai' : 'Bensin';
+    }
 }

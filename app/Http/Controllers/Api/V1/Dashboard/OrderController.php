@@ -41,16 +41,26 @@ class OrderController extends Controller
     {
         Gate::authorize('manage', $order);
 
-        return new OrderResource($order->load(['user', 'items.vehicle', 'transaction.bankAccount', 'cancellationRequests']));
+        return new OrderResource($order->load(['user', 'items.vehicle', 'items.inspections', 'transaction.bankAccount', 'cancellationRequests']));
     }
 
     /**
      * Ubah status pesanan
      *
-     * `booking` menjadi `rented`, lalu `rented` menjadi `completed`. Perubahan lain ditolak (422).
+     * `booking` menjadi `rented` (inspeksi pengambilan), lalu `rented` menjadi `completed` (inspeksi pengembalian). Keduanya wajib
+     * menyertakan `inspections` menurut id item pesanan: `{ "<order_item_id>": { odometer_km, energy_level (0-100), note, equipment: { "<equipment_item_id>": jumlah } } }`.
+     * Ceklis `equipment` pengambilan mengikuti perlengkapan aktif sesuai kategori unit, pengembalian mengikuti snapshot pengambilan unit yang sama.
+     * Odometer tidak boleh lebih kecil dari odometer terakhir kendaraan (dan odometer pengambilan). `rented` menjadi `stolen` hanya oleh
+     * admin dengan `note` wajib, tanpa inspeksi: unit disembunyikan dari katalog. Perubahan lain ditolak (422).
      */
     public function status(ChangeOrderStatusRequest $request, Order $order, ChangeOrderStatus $changeOrderStatus): OrderResource
     {
-        return new OrderResource($changeOrderStatus->handle($order, OrderStatus::from($request->validated('status'))));
+        return new OrderResource($changeOrderStatus->handle(
+            $order,
+            OrderStatus::from($request->validated('status')),
+            $request->user(),
+            $request->inspections(),
+            $request->validated('note'),
+        ));
     }
 }

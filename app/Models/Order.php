@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-#[Fillable(['code', 'user_id', 'assigned_operator_id', 'total_price', 'status', 'expires_at'])]
+#[Fillable(['code', 'user_id', 'assigned_operator_id', 'total_price', 'status', 'status_note', 'expires_at'])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */

@@ -109,3 +109,8 @@ if (verifyChoices.length > 0) {
     verifyChoices.forEach((choice) => choice.addEventListener('change', syncVerifySections));
     syncVerifySections();
 }
+
+// Detail pesanan: dialog inspeksi (tombol cepat level energi, buka ulang saat gagal)
+if (document.querySelector('[data-order-inspection]')) {
+    import('./dashboard-order-inspection');
+}

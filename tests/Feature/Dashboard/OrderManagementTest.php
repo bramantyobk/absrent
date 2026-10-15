@@ -63,17 +63,17 @@ it('shows the order detail with customer, items, transaction, and cancellation h
         ->assertSee('Budi Santoso')
         ->assertSee('Rp300.000')
         ->assertSee('Jadwal perjalanan berubah total.')
-        ->assertSee('Ubah menjadi Disewa');
+        ->assertSee('Pengambilan: ubah menjadi Disewa');
 });
 
 it('moves an order from booking to rented to completed', function () {
     $order = orderWithTransaction(['status' => OrderStatus::Booking], ['status' => TransactionStatus::Paid]);
     $this->actingAs(User::factory()->operator()->create());
 
-    $this->patch(route('dashboard.orders.status.update', $order), ['status' => 'rented'])->assertRedirect(route('dashboard.orders.show', $order));
+    $this->patch(route('dashboard.orders.status.update', $order), ['status' => 'rented', 'inspections' => inspectionPayload($order)])->assertRedirect(route('dashboard.orders.show', $order));
     expect($order->refresh()->status)->toBe(OrderStatus::Rented);
 
-    $this->patch(route('dashboard.orders.status.update', $order), ['status' => 'completed'])->assertSessionHasNoErrors();
+    $this->patch(route('dashboard.orders.status.update', $order), ['status' => 'completed', 'inspections' => inspectionPayload($order, ['odometer_km' => 500100])])->assertSessionHasNoErrors();
     expect($order->refresh()->status)->toBe(OrderStatus::Completed);
 });
 
@@ -81,7 +81,7 @@ it('rejects skipped, backward, unsupported, and repeated status changes', functi
     $order = orderWithTransaction(['status' => $from], ['status' => TransactionStatus::Paid]);
 
     $this->actingAs(User::factory()->admin()->create())
-        ->patch(route('dashboard.orders.status.update', $order), ['status' => $to])
+        ->patch(route('dashboard.orders.status.update', $order), ['status' => $to, 'inspections' => inspectionPayload($order), 'note' => 'Unit hilang.'])
         ->assertSessionHasErrors('status');
 
     expect($order->refresh()->status)->toBe($from);
@@ -91,7 +91,7 @@ it('rejects skipped, backward, unsupported, and repeated status changes', functi
     'rented to rented' => [OrderStatus::Rented, 'rented'],
     'completed to rented' => [OrderStatus::Completed, 'rented'],
     'booking to stolen' => [OrderStatus::Booking, 'stolen'],
-    'booking to refunded' => [OrderStatus::Booking, 'refunded'],
+    'pending to stolen' => [OrderStatus::Pending, 'stolen'],
 ]);
 
 it('keeps the vehicle held while rented and releases it once completed', function () {
@@ -102,7 +102,7 @@ it('keeps the vehicle held while rented and releases it once completed', functio
 
     expect($available())->toBeFalse();
 
-    $this->actingAs(User::factory()->operator()->create())->patch(route('dashboard.orders.status.update', $order), ['status' => 'completed']);
+    $this->actingAs(User::factory()->operator()->create())->patch(route('dashboard.orders.status.update', $order), ['status' => 'completed', 'inspections' => inspectionPayload($order)]);
 
     expect($available())->toBeTrue();
 });
@@ -135,7 +135,7 @@ it('does not touch other orders when changing one status', function () {
     $first = orderWithTransaction(['status' => OrderStatus::Booking], ['status' => TransactionStatus::Paid]);
     $second = orderWithTransaction(['status' => OrderStatus::Booking], ['status' => TransactionStatus::Paid]);
 
-    $this->actingAs(User::factory()->operator()->create())->patch(route('dashboard.orders.status.update', $first), ['status' => 'rented']);
+    $this->actingAs(User::factory()->operator()->create())->patch(route('dashboard.orders.status.update', $first), ['status' => 'rented', 'inspections' => inspectionPayload($first)]);
 
     expect($second->refresh()->status)->toBe(OrderStatus::Booking)->and(Order::count())->toBe(2);
 });

@@ -80,3 +80,14 @@ function orderWithTransaction(array $orderAttributes = [], array $transactionAtt
 
     return $order->load(['items.vehicle', 'transaction']);
 }
+
+/**
+ * Isian inspeksi untuk setiap item pesanan (menurut id item), tanpa ceklis perlengkapan kecuali diberikan.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<int, array<string, mixed>>
+ */
+function inspectionPayload(Order $order, array $overrides = []): array
+{
+    return $order->items->mapWithKeys(fn (OrderItem $item): array => [$item->id => $overrides + ['odometer_km' => 500000, 'energy_level' => 80]])->all();
+}

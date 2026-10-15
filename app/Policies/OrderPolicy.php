@@ -29,6 +29,14 @@ class OrderPolicy
     }
 
     /**
+     * Menandai pesanan Disewa sebagai Dicuri hanya oleh admin.
+     */
+    public function markStolen(User $actor, Order $order): bool
+    {
+        return $actor->isAdmin();
+    }
+
+    /**
      * Mengajukan pembatalan: hanya untuk pesanan Lunas yang belum Disewa (status Booking) dan belum punya pengajuan menunggu.
      */
     public function requestCancellation(User $actor, Order $order): Response

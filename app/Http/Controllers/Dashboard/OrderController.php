@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderFilterRequest;
 use App\Models\Order;
 use App\OrderStatus;
+use App\Services\OrderInspectionForm;
 use App\VehicleType;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -33,19 +34,20 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(Order $order): View
+    public function show(Order $order, OrderInspectionForm $inspectionForm): View
     {
         Gate::authorize('manage', $order);
 
-        $order->load(['user', 'items.vehicle', 'transaction.bankAccount', 'transaction.verifier', 'assignedOperator', 'cancellationRequests.handler']);
+        $order->load(['user', 'items.vehicle', 'items.inspections.inspector', 'transaction.bankAccount', 'transaction.verifier', 'assignedOperator', 'cancellationRequests.handler']);
+
+        $inspectionType = $inspectionForm->typeFor($order);
 
         return view('dashboard.orders.show', [
             'order' => $order,
-            'nextStatus' => match ($order->status) {
-                OrderStatus::Booking => OrderStatus::Rented,
-                OrderStatus::Rented => OrderStatus::Completed,
-                default => null,
-            },
+            'inspectionType' => $inspectionType,
+            'inspectionUnits' => $inspectionType ? $inspectionForm->for($order, $inspectionType) : collect(),
+            'canMarkStolen' => $order->status === OrderStatus::Rented && Gate::allows('markStolen', $order),
+            'upcomingForStolen' => $order->status === OrderStatus::Stolen ? $inspectionForm->upcomingForStolen($order) : collect(),
             'pendingCancellation' => $order->cancellationRequests->firstWhere('status', CancellationStatus::Pending),
         ]);
     }
