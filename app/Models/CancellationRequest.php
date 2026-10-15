@@ -5,6 +5,8 @@ namespace App\Models;
 use App\CancellationStatus;
 use Database\Factories\CancellationRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +26,16 @@ class CancellationRequest extends Model
             'status' => CancellationStatus::class,
             'handled_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @param  Builder<CancellationRequest>  $query
+     * @param  array{status?: ?string}  $filters
+     */
+    #[Scope]
+    protected function filter(Builder $query, array $filters): void
+    {
+        $query->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status));
     }
 
     /**

@@ -24,6 +24,7 @@ class OrderResource extends JsonResource
             'total_price' => $this->total_price,
             'expires_at' => $this->expires_at,
             'created_at' => $this->created_at,
+            'customer' => $this->whenLoaded('user', fn () => ['id' => $this->user->id, 'name' => $this->user->name, 'phone' => $this->user->phone]),
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($item): array => [
                 'vehicle_id' => $item->vehicle_id,
                 'vehicle_name' => "{$item->vehicle->brand} {$item->vehicle->model}",
@@ -39,6 +40,8 @@ class OrderResource extends JsonResource
                 'status_label' => $this->transaction->status->label(),
                 'amount' => $this->transaction->amount,
                 'confirmed_at' => $this->transaction->confirmed_at,
+                'has_proof' => filled($this->transaction->proof_path),
+                'note' => $this->transaction->note,
                 'bank_account' => $this->transaction->relationLoaded('bankAccount') && $this->transaction->bankAccount ? [
                     'id' => $this->transaction->bankAccount->id,
                     'bank_name' => $this->transaction->bankAccount->bank_name,
@@ -46,6 +49,7 @@ class OrderResource extends JsonResource
                     'account_holder' => $this->transaction->bankAccount->account_holder,
                 ] : null,
             ] : null),
+            'cancellation_request' => $this->whenLoaded('cancellationRequests', fn () => ($request = $this->cancellationRequests->sortByDesc('id')->first()) ? new CancellationRequestResource($request) : null),
         ];
     }
 }

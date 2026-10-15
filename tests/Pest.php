@@ -1,9 +1,12 @@
 <?php
 
+use App\Models\BankAccount;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Transaction;
 use App\Models\Vehicle;
 use App\OrderStatus;
+use App\TransactionStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -57,4 +60,23 @@ function holdVehicle(Vehicle $vehicle, OrderStatus $status, string $startAt, str
         ->for(Order::factory()->create(['status' => $status]), 'order')
         ->for($vehicle, 'vehicle')
         ->create(['start_at' => $startAt, 'end_at' => $endAt]);
+}
+
+/**
+ * Pesanan beserta satu item dan transaksi pada status tertentu (default: Pending dengan transaksi Menunggu Verifikasi).
+ *
+ * @param  array<string, mixed>  $orderAttributes
+ * @param  array<string, mixed>  $transactionAttributes
+ */
+function orderWithTransaction(array $orderAttributes = [], array $transactionAttributes = [], ?Vehicle $vehicle = null): Order
+{
+    $order = Order::factory()->create($orderAttributes + ['status' => OrderStatus::Pending, 'total_price' => 300000, 'expires_at' => now()->addHours(20)]);
+    OrderItem::factory()->for($order, 'order')->for($vehicle ?? Vehicle::factory()->create(), 'vehicle')->create();
+    Transaction::factory()->for($order)->create($transactionAttributes + [
+        'status' => TransactionStatus::Verifying,
+        'bank_account_id' => BankAccount::factory(),
+        'confirmed_at' => now()->subHour(),
+    ]);
+
+    return $order->load(['items.vehicle', 'transaction']);
 }

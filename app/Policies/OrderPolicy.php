@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\CancellationStatus;
 use App\Models\Order;
 use App\Models\User;
 use App\OrderStatus;
@@ -17,6 +18,34 @@ class OrderPolicy
     public function view(User $actor, Order $order): Response
     {
         return $actor->is($order->user) ? Response::allow() : Response::denyAsNotFound();
+    }
+
+    /**
+     * Staf (admin dan operator) mengelola semua pesanan lewat dashboard.
+     */
+    public function manage(User $actor): bool
+    {
+        return $actor->isStaff();
+    }
+
+    /**
+     * Mengajukan pembatalan: hanya untuk pesanan Lunas yang belum Disewa (status Booking) dan belum punya pengajuan menunggu.
+     */
+    public function requestCancellation(User $actor, Order $order): Response
+    {
+        $view = $this->view($actor, $order);
+
+        if ($view->denied()) {
+            return $view;
+        }
+
+        if ($order->status !== OrderStatus::Booking || $order->transaction?->status !== TransactionStatus::Paid) {
+            return Response::deny('Pembatalan hanya dapat diajukan untuk pesanan yang sudah lunas dan belum disewa.');
+        }
+
+        return $order->cancellationRequests()->where('status', CancellationStatus::Pending)->exists()
+            ? Response::deny('Pengajuan pembatalan untuk pesanan ini masih menunggu keputusan.')
+            : Response::allow();
     }
 
     /**

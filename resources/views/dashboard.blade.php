@@ -3,6 +3,30 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @if ($verification['waiting'] > 0 || $verification['pendingCancellations'] > 0)
+        <div class="alert {{ $verification['nearExpiry'] > 0 ? 'alert-danger' : 'alert-warning' }} d-flex flex-wrap gap-3 justify-content-between align-items-center" role="alert">
+            <div>
+                @if ($verification['waiting'] > 0)
+                    <strong>{{ $verification['waiting'] }} transaksi menunggu verifikasi</strong>
+                    @if ($verification['nearExpiry'] > 0)
+                        ({{ $verification['nearExpiry'] }} hampir habis waktunya).
+                    @endif
+                @endif
+                @if ($verification['pendingCancellations'] > 0)
+                    <strong>{{ $verification['pendingCancellations'] }} pengajuan pembatalan menunggu keputusan.</strong>
+                @endif
+            </div>
+            <div class="d-flex gap-2">
+                @if ($verification['waiting'] > 0)
+                    <a href="{{ route('dashboard.transactions.index', ['status' => 'verifying']) }}" class="btn btn-sm btn-primary">Verifikasi</a>
+                @endif
+                @if ($verification['pendingCancellations'] > 0)
+                    <a href="{{ route('dashboard.cancellation-requests.index', ['status' => 'pending']) }}" class="btn btn-sm btn-outline-primary">Pembatalan</a>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <div class="row g-4">
         <div class="col-xl-5">
             <div class="d-flex flex-column gap-4">

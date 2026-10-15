@@ -25,7 +25,7 @@ class OrderController extends Controller
     {
         Gate::authorize('view', $order);
 
-        $order->load(['items.vehicle', 'transaction']);
+        $order->load(['items.vehicle', 'transaction', 'cancellationRequests']);
 
         return view('orders.show', [
             'order' => $order,

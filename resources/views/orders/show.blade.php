@@ -73,6 +73,35 @@
                     <a href="{{ route('orders.whatsapp', $order) }}" target="_blank" rel="noopener" class="btn btn-primary w-100 mb-2">Kirim pesan konfirmasi ke operator</a>
                 @endcan
 
+                @if ($order->transaction?->proof_path)
+                    <a href="{{ route('orders.proof', $order) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 mb-2">Lihat bukti pembayaran</a>
+                @endif
+
+                @php($cancellation = $order->cancellationRequests->sortByDesc('id')->first())
+                @if ($cancellation)
+                    <div class="small border rounded p-2 mb-2">
+                        <strong>Pengajuan pembatalan: {{ $cancellation->status->label() }}</strong>
+                        <div class="text-body-secondary">{{ $cancellation->reason }}</div>
+                        @if ($cancellation->handled_note)
+                            <div class="mt-1">{{ $cancellation->handled_note }}</div>
+                        @endif
+                    </div>
+                @endif
+
+                @can('requestCancellation', $order)
+                    <form method="POST" action="{{ route('orders.cancellation-request', $order) }}" class="mb-2">
+                        @csrf
+                        <label for="reason" class="form-label small">Ajukan pembatalan</label>
+                        <textarea id="reason" name="reason" rows="3" maxlength="1000" class="form-control @error('reason') is-invalid @enderror"
+                            placeholder="Alasan pembatalan" required>{{ old('reason') }}</textarea>
+                        @error('reason')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text mb-2">Pesanan sudah lunas, jadi pembatalan diproses operator. Dana dikembalikan di luar aplikasi.</div>
+                        <button type="submit" class="btn btn-outline-danger w-100">Kirim pengajuan</button>
+                    </form>
+                @endcan
+
                 @if ($supportUrl)
                     <a href="{{ $supportUrl }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100">Butuh bantuan? WhatsApp</a>
                 @endif

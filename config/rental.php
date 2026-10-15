@@ -67,6 +67,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Peringatan verifikasi hampir habis (jam)
+    |--------------------------------------------------------------------------
+    |
+    | Transaksi Menunggu Verifikasi yang batas verifikasinya kurang dari ini
+    | ditandai "Hampir habis" di dashboard agar segera diperiksa staf.
+    |
+    */
+
+    'verification_warning_hours' => (int) env('RENTAL_VERIFICATION_WARNING_HOURS', 6),
+
+    /*
+    |--------------------------------------------------------------------------
     | Batas pesanan Pending per pelanggan
     |--------------------------------------------------------------------------
     |

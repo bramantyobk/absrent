@@ -6,8 +6,13 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CheckoutItemController;
 use App\Http\Controllers\CheckoutRescheduleController;
 use App\Http\Controllers\Dashboard\BankAccountController;
+use App\Http\Controllers\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
+use App\Http\Controllers\Dashboard\OrderController as DashboardOrderController;
+use App\Http\Controllers\Dashboard\OrderStatusController;
+use App\Http\Controllers\Dashboard\TransactionController;
+use App\Http\Controllers\Dashboard\TransactionProofController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
 use App\Http\Controllers\Dashboard\VehicleController;
@@ -19,8 +24,10 @@ use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderCancellationController;
+use App\Http\Controllers\OrderCancellationRequestController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPaymentController;
+use App\Http\Controllers\OrderProofController;
 use App\Http\Controllers\OrderWhatsAppController;
 use App\Http\Controllers\VehicleCatalogController;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +50,8 @@ Route::middleware(['auth', 'active', 'role:user'])->group(function () {
     Route::post('/orders/{order}/confirm', [OrderPaymentController::class, 'store'])->name('orders.confirm');
     Route::get('/orders/{order}/whatsapp', OrderWhatsAppController::class)->name('orders.whatsapp');
     Route::post('/orders/{order}/cancel', [OrderCancellationController::class, 'store'])->name('orders.cancel');
+    Route::post('/orders/{order}/cancellation-request', [OrderCancellationRequestController::class, 'store'])->name('orders.cancellation-request');
+    Route::get('/orders/{order}/proof', OrderProofController::class)->name('orders.proof');
 });
 
 Route::middleware('guest')->group(function () {
@@ -62,6 +71,18 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         Route::get('order-status', [DashboardChartController::class, 'orderStatus'])->name('order-status');
         Route::get('revenue', [DashboardChartController::class, 'revenue'])->name('revenue');
     });
+
+    Route::get('orders', [DashboardOrderController::class, 'index'])->name('dashboard.orders.index');
+    Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('dashboard.orders.show');
+    Route::patch('orders/{order}/status', [OrderStatusController::class, 'update'])->name('dashboard.orders.status.update');
+
+    Route::get('transactions', [TransactionController::class, 'index'])->name('dashboard.transactions.index');
+    Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('dashboard.transactions.show');
+    Route::post('transactions/{transaction}/verify', [TransactionController::class, 'verify'])->name('dashboard.transactions.verify');
+    Route::get('transactions/{transaction}/proof', TransactionProofController::class)->name('dashboard.transactions.proof');
+
+    Route::get('cancellation-requests', [CancellationRequestController::class, 'index'])->name('dashboard.cancellation-requests.index');
+    Route::patch('cancellation-requests/{cancellationRequest}', [CancellationRequestController::class, 'update'])->name('dashboard.cancellation-requests.update');
 
     Route::resource('vehicles', VehicleController::class)->names('dashboard.vehicles');
     Route::resource('vehicles.schedules', VehicleScheduleController::class)

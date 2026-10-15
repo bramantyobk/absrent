@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\CancellationStatus;
+use App\Models\CancellationRequest;
 use App\Models\Order;
+use App\Models\Transaction;
 use App\Models\Vehicle;
 use App\OrderStatus;
+use App\TransactionStatus;
 use App\VehicleType;
 use Illuminate\View\View;
 
@@ -19,6 +23,11 @@ class DashboardController extends Controller
                 ->latest()
                 ->limit(8)
                 ->get(),
+            'verification' => [
+                'waiting' => Transaction::query()->where('status', TransactionStatus::Verifying)->count(),
+                'nearExpiry' => Transaction::query()->nearExpiry()->count(),
+                'pendingCancellations' => CancellationRequest::query()->where('status', CancellationStatus::Pending)->count(),
+            ],
             'vehicleTypes' => VehicleType::cases(),
             'defaultStartDate' => now()->subDays(29)->toDateString(),
             'defaultEndDate' => now()->toDateString(),

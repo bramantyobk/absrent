@@ -93,3 +93,19 @@ if (document.querySelector('[data-bank-accounts]')) {
 if (document.querySelector('[data-whatsapp-template]')) {
     import('./dashboard-whatsapp-template');
 }
+
+// Verifikasi transaksi: tampilkan bukti (Lunas) atau alasan (Gagal) sesuai pilihan
+const verifyChoices = document.querySelectorAll('[data-verify-choice]');
+
+if (verifyChoices.length > 0) {
+    const syncVerifySections = () => {
+        const chosen = document.querySelector('[data-verify-choice]:checked')?.value;
+
+        document.querySelectorAll('[data-verify-section]').forEach((section) => {
+            section.classList.toggle('d-none', section.dataset.verifySection !== chosen);
+        });
+    };
+
+    verifyChoices.forEach((choice) => choice.addEventListener('change', syncVerifySections));
+    syncVerifySections();
+}
