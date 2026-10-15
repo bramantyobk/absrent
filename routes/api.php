@@ -59,6 +59,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('orders', [DashboardOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [DashboardOrderController::class, 'status'])->name('orders.status');
+        Route::post('orders/{order}/cancel', [DashboardOrderController::class, 'cancel'])->name('orders.cancel');
         Route::get('orders/{order}/items/{item}/replacement-options', [OrderVehicleChangeController::class, 'options'])->name('orders.items.replacement-options');
         Route::post('orders/{order}/items/{item}/vehicle-change', [OrderVehicleChangeController::class, 'store'])->name('orders.items.vehicle-change');
         Route::patch('vehicle-changes/{change}/old-vehicle', [OrderVehicleChangeController::class, 'oldVehicle'])->name('vehicle-changes.old-vehicle');

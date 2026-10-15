@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Dashboard;
 
+use App\Actions\Orders\CancelExpiredOrder;
 use App\Actions\Orders\ChangeOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangeOrderStatusRequest;
@@ -9,6 +10,7 @@ use App\Http\Requests\OrderFilterRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\OrderStatus;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 
@@ -62,5 +64,18 @@ class OrderController extends Controller
             $request->inspections(),
             $request->validated('note'),
         ));
+    }
+
+    /**
+     * Batalkan pesanan yang melewati batas konfirmasi
+     *
+     * Pembatalan sepihak oleh staf untuk pesanan `pending` yang belum dikonfirmasi pelanggan dan `expires_at`-nya sudah lewat. Pesanan dan
+     * transaksi menjadi `cancelled` dan jadwal dilepas. 422 bila batas belum lewat atau pelanggan sudah mengonfirmasi pembayaran.
+     */
+    public function cancel(Order $order, Request $request, CancelExpiredOrder $cancelExpiredOrder): OrderResource
+    {
+        Gate::authorize('manage', $order);
+
+        return new OrderResource($cancelExpiredOrder->handle($order, $request->user()));
     }
 }

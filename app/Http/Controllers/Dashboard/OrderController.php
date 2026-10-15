@@ -11,6 +11,7 @@ use App\OldVehicleStatus;
 use App\OrderStatus;
 use App\Services\OrderInspectionForm;
 use App\Services\ReplacementOptions;
+use App\TransactionStatus;
 use App\VehicleChangeReason;
 use App\VehicleType;
 use Illuminate\Support\Facades\Gate;
@@ -50,6 +51,7 @@ class OrderController extends Controller
         $changes = $order->items->flatMap->vehicleChanges->sortByDesc('id')->values();
 
         return view('dashboard.orders.show', [
+            'canCancelExpired' => $order->status === OrderStatus::Pending && $order->transaction?->status === TransactionStatus::Pending && $order->expires_at?->isPast() === true,
             'canChangeVehicle' => $canChangeVehicle,
             'replacements' => $canChangeVehicle ? $order->items->mapWithKeys(fn ($item): array => [$item->id => $replacementOptions->for($item->setRelation('order', $order))]) : collect(),
             'returnUnits' => $order->status === OrderStatus::Rented ? $inspectionForm->for($order, InspectionType::Return)->keyBy(fn (array $unit): int => $unit['item']->id) : collect(),

@@ -116,6 +116,12 @@
             @else
                 <div class="card-custom p-4">
                     <p class="text-body-secondary mb-0">Transaksi ini sudah tidak menunggu verifikasi.</p>
+                    @if ($transaction->status === \App\TransactionStatus::Pending)
+                        <p class="small mt-2 mb-0">
+                            Pelanggan belum mengonfirmasi pembayaran. Setelah melewati batas konfirmasi, pesanan dapat dibatalkan dari
+                            <a href="{{ route('dashboard.orders.show', $transaction->order) }}">halaman pesanan</a>.
+                        </p>
+                    @endif
                 </div>
             @endif
         </div>

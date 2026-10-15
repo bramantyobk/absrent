@@ -10,6 +10,7 @@ use App\Http\Controllers\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
 use App\Http\Controllers\Dashboard\OldVehicleController;
+use App\Http\Controllers\Dashboard\OrderCancelController;
 use App\Http\Controllers\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Dashboard\OrderStatusController;
 use App\Http\Controllers\Dashboard\OrderVehicleChangeController;
@@ -76,6 +77,7 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
 
     Route::get('orders', [DashboardOrderController::class, 'index'])->name('dashboard.orders.index');
     Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('dashboard.orders.show');
+    Route::post('orders/{order}/cancel', [OrderCancelController::class, 'store'])->name('dashboard.orders.cancel');
     Route::patch('orders/{order}/status', [OrderStatusController::class, 'update'])->name('dashboard.orders.status.update');
     Route::post('orders/{order}/items/{item}/vehicle-change', [OrderVehicleChangeController::class, 'store'])->scopeBindings()->name('dashboard.orders.items.vehicle-change.store');
     Route::patch('vehicle-changes/{change}/old-vehicle', [OldVehicleController::class, 'update'])->name('dashboard.vehicle-changes.old-vehicle.update');

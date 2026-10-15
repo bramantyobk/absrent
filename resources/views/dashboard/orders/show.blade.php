@@ -8,8 +8,8 @@
 
     @include('dashboard.users._alerts')
 
-    @if ($errors->has('status') || $errors->has('inspections'))
-        <div class="alert alert-danger" role="alert">{{ $errors->first('status') ?: $errors->first('inspections') }}</div>
+    @if ($errors->has('status') || $errors->has('inspections') || $errors->has('order'))
+        <div class="alert alert-danger" role="alert">{{ $errors->first('status') ?: ($errors->first('inspections') ?: $errors->first('order')) }}</div>
     @endif
 
     <a href="{{ route('dashboard.orders.index') }}" class="small fw-semibold">&larr; Daftar pesanan</a>
@@ -180,6 +180,17 @@
                 </dl>
             </div>
 
+            @if ($canCancelExpired)
+                <div class="card-custom p-4 mb-4 border-warning">
+                    <h3 class="card-heading fs-6">Melewati batas konfirmasi</h3>
+                    <p class="small text-body-secondary">
+                        Pelanggan tidak mengonfirmasi pembayaran sampai {{ $order->expires_at->format('d/m/Y H:i') }} {{ config('rental.timezone_label') }}.
+                        Pesanan dibatalkan otomatis oleh scheduler, atau Anda dapat membatalkannya sekarang agar jadwal kendaraan langsung dilepas.
+                    </p>
+                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelExpiredModal">Batalkan pesanan</button>
+                </div>
+            @endif
+
             @if ($inspectionType)
                 <div class="card-custom p-4 mb-4">
                     <h3 class="card-heading fs-6">Ubah status</h3>
@@ -199,6 +210,27 @@
             @endif
         </div>
     </div>
+
+    @if ($canCancelExpired)
+        <div class="modal fade" id="cancelExpiredModal" tabindex="-1" aria-labelledby="cancelExpiredModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form method="POST" action="{{ route('dashboard.orders.cancel', $order) }}" class="modal-content">
+                    @csrf
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="cancelExpiredModalLabel">Batalkan pesanan?</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        Pesanan <strong>{{ $order->code }}</strong> dan transaksinya menjadi Dibatalkan, dan jadwal kendaraan dilepas. Tindakan ini tidak dapat dibatalkan.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Kembali</button>
+                        <button type="submit" class="btn btn-danger">Batalkan pesanan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     @if ($inspectionType)
         @include('dashboard.orders._status-modal')
