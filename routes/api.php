@@ -14,7 +14,9 @@ use App\Http\Controllers\Api\V1\Dashboard\VehicleController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleOdometerController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleRentalLimitController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleScheduleController;
+use App\Http\Controllers\Api\V1\Dashboard\WhatsAppTemplateController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\OrderPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function () {
@@ -39,6 +41,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('orders/{order}/payment', [OrderPaymentController::class, 'show'])->name('orders.payment');
+        Route::post('orders/{order}/confirm', [OrderPaymentController::class, 'confirm'])->name('orders.confirm');
+        Route::get('orders/{order}/whatsapp', [OrderPaymentController::class, 'whatsapp'])->name('orders.whatsapp');
+        Route::post('orders/{order}/cancel', [OrderPaymentController::class, 'cancel'])->name('orders.cancel');
     });
 
     Route::prefix('dashboard')->name('dashboard.')->middleware(['auth:sanctum', 'active', 'role:admin,operator'])->group(function () {
@@ -53,6 +59,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::middleware('role:admin')->group(function () {
             Route::get('company', [CompanyProfileController::class, 'show'])->name('company.show');
             Route::put('company', [CompanyProfileController::class, 'update'])->name('company.update');
+            Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('company.whatsapp-template.update');
             Route::apiResource('company/bank-accounts', BankAccountController::class)
                 ->except('destroy')
                 ->parameters(['bank-accounts' => 'bank_account'])

@@ -6,13 +6,14 @@ use App\Actions\Company\UpdateCompanyProfile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateCompanyProfileRequest;
 use App\Models\CompanyProfile;
+use App\Services\WhatsAppTemplate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class CompanyProfileController extends Controller
 {
-    public function edit(): View
+    public function edit(WhatsAppTemplate $whatsAppTemplate): View
     {
         $company = CompanyProfile::current();
 
@@ -22,6 +23,10 @@ class CompanyProfileController extends Controller
             'company' => $company,
             'hours' => $company->operatingHours(),
             'bankAccounts' => $company->bankAccounts()->ordered()->get(),
+            'whatsAppTemplate' => $whatsAppTemplate->for($company),
+            'defaultWhatsAppTemplate' => WhatsAppTemplate::DEFAULT_TEMPLATE,
+            'whatsAppPlaceholders' => WhatsAppTemplate::PLACEHOLDERS,
+            'whatsAppSample' => $whatsAppTemplate->sampleValues(),
         ]);
     }
 

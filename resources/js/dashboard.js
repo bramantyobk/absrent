@@ -88,3 +88,8 @@ document.querySelectorAll('[data-hours-row]').forEach((row) => {
 if (document.querySelector('[data-bank-accounts]')) {
     import('./dashboard-bank-accounts');
 }
+
+// Data perusahaan: template pesan WhatsApp (sisip placeholder, pratinjau, kembali ke bawaan)
+if (document.querySelector('[data-whatsapp-template]')) {
+    import('./dashboard-whatsapp-template');
+}

@@ -38,6 +38,13 @@ class OrderResource extends JsonResource
                 'status' => $this->transaction->status->value,
                 'status_label' => $this->transaction->status->label(),
                 'amount' => $this->transaction->amount,
+                'confirmed_at' => $this->transaction->confirmed_at,
+                'bank_account' => $this->transaction->relationLoaded('bankAccount') && $this->transaction->bankAccount ? [
+                    'id' => $this->transaction->bankAccount->id,
+                    'bank_name' => $this->transaction->bankAccount->bank_name,
+                    'account_number' => $this->transaction->bankAccount->account_number,
+                    'account_holder' => $this->transaction->bankAccount->account_holder,
+                ] : null,
             ] : null),
         ];
     }

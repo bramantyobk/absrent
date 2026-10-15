@@ -3,15 +3,33 @@
 namespace App\Services;
 
 use App\Models\CompanyProfile;
+use App\Models\Order;
 
 class WhatsAppLink
 {
+    public function __construct(private WhatsAppTemplate $template) {}
+
     /**
      * Tautan ke nomor WhatsApp support perusahaan, atau null bila nomor support belum diisi.
      */
     public function toSupport(CompanyProfile $company, string $message): ?string
     {
         return $company->support_whatsapp === '' ? null : $this->make($company->support_whatsapp, $message);
+    }
+
+    /**
+     * Tautan konfirmasi pembayaran ke operator yang ditetapkan rotator pada pesanan, atau ke nomor support bila
+     * pesanan tidak punya operator. Pesan dibuat dari template perusahaan. Null bila tidak ada nomor tujuan.
+     */
+    public function toOperator(Order $order, CompanyProfile $company): ?string
+    {
+        $number = $order->assignedOperator?->phone ?: $company->support_whatsapp;
+
+        if (blank($number)) {
+            return null;
+        }
+
+        return $this->make($number, $this->template->render($this->template->for($company), $this->template->valuesFor($order)));
     }
 
     /**

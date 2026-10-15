@@ -51,7 +51,7 @@ class CheckoutController extends Controller
         $cart->clear();
 
         return redirect()
-            ->route('orders.show', $order)
-            ->with('status', "Pesanan {$order->code} berhasil dibuat.");
+            ->route('orders.payment', $order)
+            ->with('status', "Pesanan {$order->code} berhasil dibuat. Lanjutkan dengan pembayaran.");
     }
 }

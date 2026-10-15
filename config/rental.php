@@ -46,11 +46,24 @@ return [
     |--------------------------------------------------------------------------
     |
     | Pesanan Pending yang tidak dikonfirmasi dalam batas ini dibatalkan otomatis
-    | oleh scheduler (fase 8). Nilainya disimpan di orders.expires_at saat dibuat.
+    | oleh scheduler (`orders:expire`). Nilainya disimpan di orders.expires_at saat dibuat.
     |
     */
 
     'pending_expiry_hours' => (int) env('RENTAL_PENDING_EXPIRY_HOURS', 24),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Batas verifikasi pembayaran (jam)
+    |--------------------------------------------------------------------------
+    |
+    | Transaksi Menunggu Verifikasi yang tidak diverifikasi staf dalam batas ini
+    | sejak konfirmasi menjadi Gagal otomatis oleh scheduler. Nilainya disimpan
+    | di orders.expires_at saat pelanggan mengonfirmasi pembayaran.
+    |
+    */
+
+    'confirm_validation_window_hours' => (int) env('RENTAL_CONFIRM_VALIDATION_WINDOW_HOURS', 24),
 
     /*
     |--------------------------------------------------------------------------

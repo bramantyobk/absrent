@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['order_id', 'bank_account_id', 'amount', 'proof_path', 'status', 'note', 'verified_by', 'verified_at'])]
+#[Fillable(['order_id', 'bank_account_id', 'amount', 'proof_path', 'confirmed_at', 'status', 'note', 'verified_by', 'verified_at'])]
 class Transaction extends Model
 {
     /** @use HasFactory<TransactionFactory> */
@@ -22,6 +22,7 @@ class Transaction extends Model
     {
         return [
             'status' => TransactionStatus::class,
+            'confirmed_at' => 'datetime',
             'verified_at' => 'datetime',
         ];
     }

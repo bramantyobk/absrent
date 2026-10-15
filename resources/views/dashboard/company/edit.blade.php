@@ -181,6 +181,40 @@
         </div>
     </div>
 
+    <div class="card-custom p-4 mt-4" data-whatsapp-template data-default-template="{{ $defaultWhatsAppTemplate }}" data-sample='@json($whatsAppSample)'>
+        <h2 class="card-heading">Template Pesan WhatsApp</h2>
+        <p class="small text-body-secondary">
+            Isi pesan konfirmasi pembayaran yang dikirim pelanggan ke operator. Kosongkan untuk memakai template bawaan.
+        </p>
+
+        <form method="POST" action="{{ route('dashboard.company.whatsapp-template.update') }}" novalidate>
+            @csrf
+            @method('PUT')
+
+            <label for="whatsapp_confirmation_template" class="form-label">Template</label>
+            <textarea id="whatsapp_confirmation_template" name="whatsapp_confirmation_template" rows="6" maxlength="1000" data-template-input
+                class="form-control @error('whatsapp_confirmation_template') is-invalid @enderror">{{ old('whatsapp_confirmation_template', $whatsAppTemplate) }}</textarea>
+            @error('whatsapp_confirmation_template')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+
+            <p class="small text-body-secondary mt-3 mb-1">Klik placeholder untuk menyisipkannya ({{ '{order_code}' }} wajib ada):</p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @foreach ($whatsAppPlaceholders as $placeholder => $description)
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-template-placeholder="{{ $placeholder }}" title="{{ $description }}">{{ $placeholder }}</button>
+                @endforeach
+            </div>
+
+            <p class="small fw-semibold mb-1">Pratinjau dengan data contoh</p>
+            <pre class="border rounded p-3 small bg-light" data-template-preview style="white-space: pre-wrap;"></pre>
+
+            <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">Simpan template</button>
+                <button type="button" class="btn btn-outline-secondary" data-template-reset>Kembalikan ke bawaan</button>
+            </div>
+        </form>
+    </div>
+
     <div class="modal fade" id="bankAccountModal" tabindex="-1" aria-labelledby="bankAccountModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <form method="POST" action="{{ $bankAction }}" class="modal-content" data-bank-form data-store-url="{{ $bankStoreUrl }}" novalidate>

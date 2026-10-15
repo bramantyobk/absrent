@@ -14,10 +14,14 @@ use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\Dashboard\VehicleOdometerController;
 use App\Http\Controllers\Dashboard\VehicleRentalLimitController;
 use App\Http\Controllers\Dashboard\VehicleScheduleController;
+use App\Http\Controllers\Dashboard\WhatsAppTemplateController;
 use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderCancellationController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderPaymentController;
+use App\Http\Controllers\OrderWhatsAppController;
 use App\Http\Controllers\VehicleCatalogController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +39,10 @@ Route::middleware(['auth', 'active', 'role:user'])->group(function () {
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/payment', [OrderPaymentController::class, 'show'])->name('orders.payment');
+    Route::post('/orders/{order}/confirm', [OrderPaymentController::class, 'store'])->name('orders.confirm');
+    Route::get('/orders/{order}/whatsapp', OrderWhatsAppController::class)->name('orders.whatsapp');
+    Route::post('/orders/{order}/cancel', [OrderCancellationController::class, 'store'])->name('orders.cancel');
 });
 
 Route::middleware('guest')->group(function () {
@@ -76,6 +84,7 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
             ->only(['store', 'update'])
             ->parameters(['bank-accounts' => 'bank_account'])
             ->names('dashboard.company.bank-accounts');
+        Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('dashboard.company.whatsapp-template.update');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
     });

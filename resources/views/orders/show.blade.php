@@ -44,10 +44,34 @@
                     <dt>Dibuat</dt>
                     <dd>{{ $order->created_at->format('d/m/Y H:i') }}</dd>
                     @if ($order->expires_at)
-                        <dt>Batas pembayaran</dt>
+                        <dt>{{ $order->transaction?->confirmed_at ? 'Batas verifikasi' : 'Batas pembayaran' }}</dt>
                         <dd>{{ $order->expires_at->format('d/m/Y H:i') }}</dd>
                     @endif
                 </dl>
+
+                @if ($order->transaction?->confirmed_at)
+                    <dl class="small mb-3">
+                        <dt>Dikonfirmasi</dt>
+                        <dd>{{ $order->transaction->confirmed_at->format('d/m/Y H:i') }}</dd>
+                    </dl>
+                @endif
+
+                @if ($order->transaction?->note)
+                    <p class="small text-body-secondary">{{ $order->transaction->note }}</p>
+                @endif
+
+                @can('pay', $order)
+                    <a href="{{ route('orders.payment', $order) }}" class="btn btn-primary w-100 mb-2">Bayar sekarang</a>
+                    <form method="POST" action="{{ route('orders.cancel', $order) }}" class="mb-2">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Batalkan pesanan ini?')">Batalkan pesanan</button>
+                    </form>
+                @endcan
+
+                @can('resendConfirmation', $order)
+                    <p class="small text-body-secondary">Menunggu verifikasi operator. Bila WhatsApp tidak terbuka, kirim pesan konfirmasi lewat tombol di bawah.</p>
+                    <a href="{{ route('orders.whatsapp', $order) }}" target="_blank" rel="noopener" class="btn btn-primary w-100 mb-2">Kirim pesan konfirmasi ke operator</a>
+                @endcan
 
                 @if ($supportUrl)
                     <a href="{{ $supportUrl }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100">Butuh bantuan? WhatsApp</a>
