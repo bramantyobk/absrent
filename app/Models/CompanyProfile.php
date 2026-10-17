@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\CompanyProfileResolver;
 use App\Weekday;
+use Carbon\CarbonInterface;
 use Database\Factories\CompanyProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -70,6 +71,16 @@ class CompanyProfile extends Model
                 'close_at' => $hours['is_open'] ? $hours['close_at'] : null,
             ];
         }, Weekday::cases());
+    }
+
+    /**
+     * Apakah kantor buka pada waktu itu menurut jam layanan (waktu di zona aplikasi). Hanya informasi, tidak membatasi pemesanan.
+     */
+    public function isOpenAt(CarbonInterface $time): bool
+    {
+        $hours = $this->operatingHours()[$time->dayOfWeekIso - 1];
+
+        return $hours['is_open'] && $time->format('H:i') >= $hours['open_at'] && $time->format('H:i') < $hours['close_at'];
     }
 
     /**

@@ -22,6 +22,8 @@ class OrderResource extends JsonResource
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'status_note' => $this->status_note,
+            'is_manual' => $this->isManual(),
+            'created_by' => $this->whenLoaded('creator', fn () => $this->creator?->name),
             'total_price' => $this->total_price,
             'expires_at' => $this->expires_at,
             'created_at' => $this->created_at,

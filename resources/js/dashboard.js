@@ -119,3 +119,8 @@ if (document.querySelector('[data-order-inspection]')) {
 if (document.querySelector('[data-vehicle-change], [data-old-unit]')) {
     import('./dashboard-order-vehicle-change');
 }
+
+// Pesanan manual: pemilihan kendaraan dan pencarian pelanggan
+if (document.querySelector('[data-manual-order]')) {
+    import('./dashboard-manual-order');
+}

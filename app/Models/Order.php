@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-#[Fillable(['code', 'user_id', 'assigned_operator_id', 'total_price', 'status', 'status_note', 'expires_at'])]
+#[Fillable(['code', 'user_id', 'assigned_operator_id', 'created_by', 'total_price', 'status', 'status_note', 'expires_at'])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
@@ -64,6 +64,24 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Staf pembuat pesanan manual (kosong untuk pesanan online).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Pesanan manual dikenali dari `created_by` yang berbeda dari `user_id` (kosong dianggap sama dengan pelanggan).
+     */
+    public function isManual(): bool
+    {
+        return $this->created_by !== null && $this->created_by !== $this->user_id;
     }
 
     /**

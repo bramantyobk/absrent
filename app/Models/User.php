@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_active', 'is_on_duty', 'last_assigned_at'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_active', 'is_on_duty', 'last_assigned_at', 'phone_flagged_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -34,6 +34,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'is_on_duty' => 'boolean',
             'last_assigned_at' => 'datetime',
+            'phone_flagged_at' => 'datetime',
         ];
     }
 
@@ -64,6 +65,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Pesanan yang dibuat user ini sebagai staf (pesanan manual).
+     *
+     * @return HasMany<Order, $this>
+     */
+    public function createdOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'created_by');
+    }
+
+    /**
      * @return HasMany<Transaction, $this>
      */
     public function verifiedTransactions(): HasMany
@@ -86,6 +97,7 @@ class User extends Authenticatable
     {
         return $this->orders()->exists()
             || $this->assignedOrders()->exists()
+            || $this->createdOrders()->exists()
             || $this->verifiedTransactions()->exists()
             || $this->handledCancellationRequests()->exists();
     }

@@ -29,6 +29,14 @@ class OrderPolicy
     }
 
     /**
+     * Membuat pesanan manual (booking langsung) untuk pelanggan, termasuk membuat akun pelanggan baru lewat formulir itu.
+     */
+    public function createManual(User $actor): bool
+    {
+        return $actor->isStaff();
+    }
+
+    /**
      * Menandai pesanan Disewa sebagai Dicuri hanya oleh admin.
      */
     public function markStolen(User $actor, Order $order): bool

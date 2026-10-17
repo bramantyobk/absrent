@@ -9,7 +9,9 @@ use App\Http\Controllers\Api\V1\CheckoutController;
 use App\Http\Controllers\Api\V1\Dashboard\BankAccountController;
 use App\Http\Controllers\Api\V1\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Api\V1\Dashboard\CompanyProfileController;
+use App\Http\Controllers\Api\V1\Dashboard\CustomerLookupController;
 use App\Http\Controllers\Api\V1\Dashboard\EquipmentItemController;
+use App\Http\Controllers\Api\V1\Dashboard\ManualOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderVehicleChangeController;
 use App\Http\Controllers\Api\V1\Dashboard\TransactionController;
@@ -56,6 +58,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     });
 
     Route::prefix('dashboard')->name('dashboard.')->middleware(['auth:sanctum', 'active', 'role:admin,operator'])->group(function () {
+        Route::get('customers/lookup', CustomerLookupController::class)->name('customers.lookup');
+        Route::post('orders/manual', [ManualOrderController::class, 'store'])->name('orders.manual.store');
         Route::get('orders', [DashboardOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [DashboardOrderController::class, 'status'])->name('orders.status');

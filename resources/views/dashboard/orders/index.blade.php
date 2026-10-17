@@ -6,7 +6,10 @@
     @include('dashboard.users._alerts')
 
     <div class="card-dash-user p-4">
-        <h2 class="card-heading mb-4">Daftar Pesanan</h2>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <h2 class="card-heading mb-0">Daftar Pesanan</h2>
+            <a href="{{ route('dashboard.orders.manual.create') }}" class="btn btn-primary">Buat pesanan manual</a>
+        </div>
 
         <form method="GET" action="{{ route('dashboard.orders.index') }}" class="row g-2 mb-4">
             <div class="col-12 col-xl-4">
@@ -83,6 +86,9 @@
                                     <x-status-badge :status="$order->status" />
                                     @if ($order->transaction && $order->status === \App\OrderStatus::Pending)
                                         <x-status-badge :status="$order->transaction->status" />
+                                    @endif
+                                    @if ($order->isManual())
+                                        <span class="status-badge status-returned">Manual</span>
                                     @endif
                                     @if ($order->has_pending_cancellation)
                                         <span class="status-badge status-refund">Ajuan batal</span>

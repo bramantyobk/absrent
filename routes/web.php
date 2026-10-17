@@ -8,7 +8,9 @@ use App\Http\Controllers\CheckoutRescheduleController;
 use App\Http\Controllers\Dashboard\BankAccountController;
 use App\Http\Controllers\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
+use App\Http\Controllers\Dashboard\CustomerLookupController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
+use App\Http\Controllers\Dashboard\ManualOrderController;
 use App\Http\Controllers\Dashboard\OldVehicleController;
 use App\Http\Controllers\Dashboard\OrderCancelController;
 use App\Http\Controllers\Dashboard\OrderController as DashboardOrderController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\Dashboard\TransactionController;
 use App\Http\Controllers\Dashboard\TransactionProofController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
+use App\Http\Controllers\Dashboard\UserPhoneReviewController;
 use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\Dashboard\VehicleOdometerController;
 use App\Http\Controllers\Dashboard\VehicleRentalLimitController;
@@ -76,6 +79,9 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
     });
 
     Route::get('orders', [DashboardOrderController::class, 'index'])->name('dashboard.orders.index');
+    Route::get('orders/manual', [ManualOrderController::class, 'create'])->name('dashboard.orders.manual.create');
+    Route::post('orders/manual', [ManualOrderController::class, 'store'])->name('dashboard.orders.manual.store');
+    Route::get('customers/lookup', CustomerLookupController::class)->name('dashboard.customers.lookup');
     Route::get('orders/{order}', [DashboardOrderController::class, 'show'])->name('dashboard.orders.show');
     Route::post('orders/{order}/cancel', [OrderCancelController::class, 'store'])->name('dashboard.orders.cancel');
     Route::patch('orders/{order}/status', [OrderStatusController::class, 'update'])->name('dashboard.orders.status.update');
@@ -114,5 +120,6 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('dashboard.company.whatsapp-template.update');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
+        Route::patch('users/{user}/phone-review', UserPhoneReviewController::class)->name('dashboard.users.phone-review');
     });
 });

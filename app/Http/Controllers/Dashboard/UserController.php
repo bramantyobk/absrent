@@ -73,7 +73,13 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $user->update($this->attributes($request->validated()));
+        $attributes = $this->attributes($request->validated());
+
+        if ($attributes['phone'] !== $user->phone) {
+            $attributes['phone_flagged_at'] = null;
+        }
+
+        $user->update($attributes);
 
         return redirect()
             ->route('dashboard.users.index')

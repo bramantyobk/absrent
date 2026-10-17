@@ -60,15 +60,35 @@ class CreateOrder
     }
 
     /**
+     * Pesanan manual (booking langsung): aturan bentrok, jeda, dan durasi sama dengan pesanan online, tetapi pembayaran dicatat
+     * staf di tempat sebagai Lunas sehingga pesanan langsung `Booking` tanpa masa kedaluwarsa dan tanpa batas pesanan Pending.
+     * `created_by` diisi staf pembuat, `verified_by`/`verified_at` pada transaksi juga staf. Bukti dan rekening opsional.
+     *
+     * @param  list<int|string>  $vehicleIds
+     * @param  array{bank_account_id?: ?int, proof_path?: ?string, note?: ?string}  $payment
+     *
+     * @throws ValidationException
+     */
+    public function handleForStaff(User $customer, User $staff, string $startAt, int $days, array $vehicleIds, array $payment = []): Order
+    {
+        $this->ensureVehicleCount($vehicleIds);
+
+        return $this->create($customer, $startAt, $days, $vehicleIds, $staff, $payment);
+    }
+
+    /**
      * Baris kendaraan dikunci (urut id, mencegah deadlock) selama pengecekan bentrok agar tidak ada pesanan
      * atau servis yang menyelip.
      *
      * @param  list<int|string>  $vehicleIds
+     * @param  array{bank_account_id?: ?int, proof_path?: ?string, note?: ?string}  $payment
      */
-    private function create(User $customer, string $startAt, int $days, array $vehicleIds): Order
+    private function create(User $customer, string $startAt, int $days, array $vehicleIds, ?User $staff = null, array $payment = []): Order
     {
-        return DB::transaction(function () use ($customer, $startAt, $days, $vehicleIds): Order {
-            $this->ensureBelowPendingLimit($customer);
+        return DB::transaction(function () use ($customer, $startAt, $days, $vehicleIds, $staff, $payment): Order {
+            if ($staff === null) {
+                $this->ensureBelowPendingLimit($customer);
+            }
 
             $vehicles = Vehicle::query()
                 ->whereIn('id', $vehicleIds)
@@ -96,9 +116,10 @@ class CreateOrder
             $order = retry(3, fn (): Order => Order::create([
                 'code' => Order::generateCode(),
                 'user_id' => $customer->getKey(),
+                'created_by' => $staff?->getKey() ?? $customer->getKey(),
                 'total_price' => array_sum(array_column($lines, 'subtotal')),
-                'status' => OrderStatus::Pending,
-                'expires_at' => now()->addHours(config('rental.pending_expiry_hours')),
+                'status' => $staff ? OrderStatus::Booking : OrderStatus::Pending,
+                'expires_at' => $staff ? null : now()->addHours(config('rental.pending_expiry_hours')),
             ]), 0, fn (Throwable $exception): bool => $exception instanceof UniqueConstraintViolationException);
 
             foreach ($lines as $line) {
@@ -114,7 +135,13 @@ class CreateOrder
 
             $order->transaction()->create([
                 'amount' => $order->total_price,
-                'status' => TransactionStatus::Pending,
+                'status' => $staff ? TransactionStatus::Paid : TransactionStatus::Pending,
+                'bank_account_id' => $payment['bank_account_id'] ?? null,
+                'proof_path' => $payment['proof_path'] ?? null,
+                'note' => $payment['note'] ?? null,
+                'confirmed_at' => $staff ? now() : null,
+                'verified_by' => $staff?->getKey(),
+                'verified_at' => $staff ? now() : null,
             ]);
 
             return $order->load(['items.vehicle', 'transaction']);

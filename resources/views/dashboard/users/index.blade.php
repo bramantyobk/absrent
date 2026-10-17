@@ -77,6 +77,11 @@
                                 @if ($user->phone)
                                     <a href="https://wa.me/{{ $user->phone }}" target="_blank" rel="noopener" class="small">{{ $user->phone }}</a>
                                 @endif
+                                @if ($user->phone_flagged_at)
+                                    <div>
+                                        <span class="status-badge status-progress" title="Nomor ini dipakai pelanggan baru. Pemiliknya mungkin sudah berganti nomor.">Nomor perlu ditinjau</span>
+                                    </div>
+                                @endif
                             </td>
                             <td><span class="badge {{ $user->role->badgeClass() }}">{{ $user->role->label() }}</span></td>
                             <td>
@@ -109,6 +114,13 @@
                             </td>
                             @if ($canManage)
                                 <td class="text-end text-nowrap">
+                                    @if ($user->phone_flagged_at)
+                                        <form method="POST" action="{{ route('dashboard.users.phone-review', $user) }}" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">Sudah ditinjau</button>
+                                        </form>
+                                    @endif
                                     <a href="{{ route('dashboard.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Ubah</a>
 
                                     @if ($isSelf)

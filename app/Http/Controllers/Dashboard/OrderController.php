@@ -43,7 +43,7 @@ class OrderController extends Controller
     {
         Gate::authorize('manage', $order);
 
-        $order->load(['user', 'items.vehicle', 'items.inspections.inspector', 'items.vehicleChanges.fromVehicle', 'items.vehicleChanges.toVehicle', 'items.vehicleChanges.changedBy', 'transaction.bankAccount', 'transaction.verifier', 'assignedOperator', 'cancellationRequests.handler']);
+        $order->load(['user', 'creator', 'items.vehicle', 'items.inspections.inspector', 'items.vehicleChanges.fromVehicle', 'items.vehicleChanges.toVehicle', 'items.vehicleChanges.changedBy', 'transaction.bankAccount', 'transaction.verifier', 'assignedOperator', 'cancellationRequests.handler']);
 
         $inspectionType = $inspectionForm->typeFor($order);
 

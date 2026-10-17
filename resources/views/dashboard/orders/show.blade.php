@@ -170,7 +170,12 @@
                     <dt>Pelanggan</dt>
                     <dd>{{ $order->user->name }}<br><span class="text-body-secondary">{{ $order->user->phone }}</span></dd>
                     <dt>Dibuat</dt>
-                    <dd>{{ $order->created_at->format('d/m/Y H:i') }}</dd>
+                    <dd>
+                        {{ $order->created_at->format('d/m/Y H:i') }}
+                        @if ($order->isManual())
+                            <br><span class="text-body-secondary">Pesanan manual oleh {{ $order->creator?->name }}</span>
+                        @endif
+                    </dd>
                     <dt>Operator rotator</dt>
                     <dd>{{ $order->assignedOperator?->name ?? '-' }}</dd>
                     @if ($order->transaction)
