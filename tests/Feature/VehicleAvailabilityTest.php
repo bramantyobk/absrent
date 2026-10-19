@@ -48,6 +48,15 @@ it('holds the vehicle only for pending, booking, and rented orders', function (O
     'failed' => [OrderStatus::Failed, false],
 ]);
 
+it('releases a rented order that is not late after its end plus the buffer', function () {
+    $vehicle = Vehicle::factory()->create();
+    holdVehicle($vehicle, OrderStatus::Rented, '2026-10-11 09:00', '2026-10-13 09:00');
+
+    expect(isAvailableBetween($vehicle, '2026-10-13 11:59', '2026-10-14 09:00'))->toBeFalse()
+        ->and(isAvailableBetween($vehicle, '2026-10-13 12:00', '2026-10-14 09:00'))->toBeTrue()
+        ->and(isAvailableBetween($vehicle, '2026-10-14 09:00', '2026-10-15 09:00'))->toBeTrue();
+});
+
 it('keeps a late rented order holding the vehicle until it is completed', function () {
     $vehicle = Vehicle::factory()->create();
     holdVehicle($vehicle, OrderStatus::Rented, '2026-10-05 08:00', '2026-10-07 08:00');

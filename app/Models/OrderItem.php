@@ -51,21 +51,25 @@ class OrderItem extends Model
     /**
      * Item pesanan aktif (Pending/Booking/Disewa) yang menahan unit pada rentang [start, end).
      * Pesanan menahan unit sampai end_at ditambah jeda pengembalian, dan pesanan Disewa yang
-     * terlambat tetap menahan sampai operator mengubahnya menjadi Selesai.
+     * terlambat (sudah lewat end_at + jeda) tetap menahan sampai operator mengubahnya menjadi Selesai;
+     * pesanan Disewa yang belum terlambat mengikuti aturan biasa.
      *
      * @param  Builder<OrderItem>  $query
      */
     #[Scope]
     protected function holdingBetween(Builder $query, CarbonInterface $start, CarbonInterface $end): void
     {
-        $releasedAfter = $start->copy()->subHours(config('rental.return_buffer_hours'));
+        $buffer = config('rental.return_buffer_hours');
+        $releasedAfter = $start->copy()->subHours($buffer);
 
         $query
             ->where('start_at', '<', $end)
             ->whereHas('order', fn (Builder $order) => $order->whereIn('status', OrderStatus::holdingSchedule()))
             ->where(fn (Builder $query) => $query
                 ->where('end_at', '>', $releasedAfter)
-                ->orWhereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented)));
+                ->orWhere(fn (Builder $overdue) => $overdue
+                    ->where('end_at', '<=', now()->subHours($buffer))
+                    ->whereHas('order', fn (Builder $order) => $order->where('status', OrderStatus::Rented))));
     }
 
     /**
