@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['vehicle_id', 'order_item_id', 'type', 'odometer_km', 'energy_level', 'equipment_checks', 'note', 'inspected_by', 'inspected_at'])]
+#[Fillable(['vehicle_id', 'order_item_id', 'type', 'odometer_km', 'energy_level', 'equipment_checks', 'note', 'inspected_by', 'inspected_at', 'edited_by', 'edited_at'])]
 class VehicleInspection extends Model
 {
     /** @use HasFactory<VehicleInspectionFactory> */
@@ -24,6 +24,7 @@ class VehicleInspection extends Model
             'type' => InspectionType::class,
             'equipment_checks' => 'array',
             'inspected_at' => 'datetime',
+            'edited_at' => 'datetime',
         ];
     }
 
@@ -41,6 +42,16 @@ class VehicleInspection extends Model
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    /**
+     * Admin yang terakhir menyunting inspeksi (jejak saja, tidak ditampilkan di UI maupun API).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function editor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'edited_by');
     }
 
     /**

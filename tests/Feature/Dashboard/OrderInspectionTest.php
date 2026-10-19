@@ -209,7 +209,7 @@ it('prefills the return dialog from the pickup snapshot and lists the inspection
         ->assertSee('Helm SNI 1/2')
         ->assertSee('Helm kedua tertinggal.');
 
-    $pattern = '/name="inspections\\['.$item->id.'\\]\\[equipment\\]\\['.$helmet->id.'\\]"\\s+value="1"/';
+    $pattern = '/name="inspections\\['.$item->id.'\\]\\[equipment\\]\\['.$helmet->id.'\\]"[^>]*value="1"/s';
     expect($response->getContent())->toMatch($pattern);
 });
 

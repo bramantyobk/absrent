@@ -3,7 +3,7 @@
 @section('title', "Pesanan {$order->code}")
 
 @section('content')
-    @php($autoOpen = $errors->isNotEmpty() ? (old('change_item_id') ? 'changeModal'.old('change_item_id') : (old('old_unit_change_id') ? 'oldUnitModal'.old('old_unit_change_id') : (old('status') === 'stolen' ? 'stolenModal' : (old('status') ? 'statusModal' : null)))) : null)
+    @php($autoOpen = $errors->isNotEmpty() ? (old('change_item_id') ? 'changeModal'.old('change_item_id') : (old('old_unit_change_id') ? 'oldUnitModal'.old('old_unit_change_id') : (old('edit_inspection_id') ? 'editInspectionModal'.old('edit_inspection_id') : (old('status') === 'stolen' ? 'stolenModal' : (old('status') ? 'statusModal' : null))))) : null)
     <div data-order-inspection @if ($autoOpen) data-auto-open="{{ $autoOpen }}" @endif></div>
 
     @include('dashboard.users._alerts')
@@ -121,7 +121,12 @@
                             @php($inspectedVehicle = $inspection->vehicle)
                             <div class="d-flex flex-wrap justify-content-between gap-2">
                                 <span class="fw-semibold">{{ $inspection->type->label() }} &middot; {{ $inspectedVehicle->brand }} {{ $inspectedVehicle->model }}</span>
-                                <span class="small text-body-secondary">{{ $inspection->inspected_at->format('d/m/Y H:i') }} &middot; {{ $inspection->inspector?->name }}</span>
+                                <span class="small text-body-secondary">
+                                    {{ $inspection->inspected_at->format('d/m/Y H:i') }} &middot; {{ $inspection->inspector?->name }}
+                                    @can('update', $inspection)
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#editInspectionModal{{ $inspection->id }}">Edit</button>
+                                    @endcan
+                                </span>
                             </div>
                             <div class="small">
                                 Odometer {{ number_format($inspection->odometer_km, 0, ',', '.') }} km
@@ -270,6 +275,14 @@
             @include('dashboard.orders._vehicle-change-modal')
         @endforeach
     @endif
+
+    @foreach ($order->items as $item)
+        @foreach ($item->inspections as $inspection)
+            @can('update', $inspection)
+                @include('dashboard.orders._inspection-edit-modal')
+            @endcan
+        @endforeach
+    @endforeach
 
     @foreach ($pendingUnits as $pending)
         @include('dashboard.orders._old-unit-modal')

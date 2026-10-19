@@ -10,6 +10,7 @@ use App\Http\Controllers\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Dashboard\CustomerLookupController;
 use App\Http\Controllers\Dashboard\EquipmentItemController;
+use App\Http\Controllers\Dashboard\InspectionController;
 use App\Http\Controllers\Dashboard\ManualOrderController;
 use App\Http\Controllers\Dashboard\OldVehicleController;
 use App\Http\Controllers\Dashboard\OrderCancelController;
@@ -120,6 +121,7 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
             ->only(['store', 'update'])
             ->parameters(['bank-accounts' => 'bank_account'])
             ->names('dashboard.company.bank-accounts');
+        Route::patch('inspections/{inspection}', [InspectionController::class, 'update'])->name('dashboard.inspections.update');
         Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('dashboard.company.whatsapp-template.update');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');

@@ -3,7 +3,7 @@
 
 <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <form method="POST" action="{{ route('dashboard.orders.status.update', $order) }}" class="modal-content" novalidate>
+        <form method="POST" action="{{ route('dashboard.orders.status.update', $order) }}" class="modal-content" data-confirm-summary data-summary-title="{{ $isPickup ? 'Pesanan akan berubah menjadi Disewa.' : 'Pesanan akan berubah menjadi Selesai.' }}" novalidate>
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="{{ $targetStatus }}">
@@ -21,7 +21,7 @@
                     @php($prefix = "inspections.{$item->id}")
                     @php($energy = (int) old("{$prefix}.energy_level", $isPickup ? 100 : 50))
 
-                    <fieldset class="{{ $loop->first ? '' : 'border-top pt-3 mt-3' }}" data-inspection-unit>
+                    <fieldset class="{{ $loop->first ? '' : 'border-top pt-3 mt-3' }}" data-inspection-unit data-summary-group="{{ $item->vehicle->brand }} {{ $item->vehicle->model }} ({{ $item->vehicle->plate_number }})">
                         <legend class="fs-6 fw-semibold">
                             {{ $item->vehicle->brand }} {{ $item->vehicle->model }}
                             <span class="text-body-secondary fw-normal">({{ $item->vehicle->plate_number }})</span>
@@ -31,7 +31,7 @@
                             <div class="col-12 col-md-6">
                                 <label for="odometer_{{ $item->id }}" class="form-label">Odometer (km)</label>
                                 <input type="number" min="{{ $unit['minimum_odometer'] }}" step="1" id="odometer_{{ $item->id }}"
-                                    name="inspections[{{ $item->id }}][odometer_km]"
+                                    name="inspections[{{ $item->id }}][odometer_km]" data-summary-label="Odometer (km)"
                                     value="{{ old("{$prefix}.odometer_km", $unit['minimum_odometer']) }}"
                                     class="form-control @error("{$prefix}.odometer_km") is-invalid @enderror" required>
                                 <div class="form-text">Minimal {{ number_format($unit['minimum_odometer'], 0, ',', '.') }} km.</div>
@@ -43,7 +43,7 @@
                             <div class="col-12 col-md-6">
                                 <label for="energy_{{ $item->id }}" class="form-label">{{ $unit['energy_label'] }} (%)</label>
                                 <input type="number" min="0" max="100" step="1" id="energy_{{ $item->id }}"
-                                    name="inspections[{{ $item->id }}][energy_level]" value="{{ $energy }}" data-energy-input
+                                    name="inspections[{{ $item->id }}][energy_level]" value="{{ $energy }}" data-energy-input data-summary-label="{{ $unit['energy_label'] }} (%)"
                                     class="form-control @error("{$prefix}.energy_level") is-invalid @enderror" required>
                                 @error("{$prefix}.energy_level")
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -62,7 +62,7 @@
                                         <div class="d-flex align-items-center justify-content-between gap-3 py-1">
                                             <label for="equipment_{{ $item->id }}_{{ $row['id'] }}" class="mb-0">{{ $row['name'] }} <span class="text-body-secondary small">(seharusnya {{ $row['expected'] }})</span></label>
                                             <input type="number" min="0" max="99" step="1" id="equipment_{{ $item->id }}_{{ $row['id'] }}"
-                                                name="inspections[{{ $item->id }}][equipment][{{ $row['id'] }}]"
+                                                name="inspections[{{ $item->id }}][equipment][{{ $row['id'] }}]" data-summary-equipment data-name="{{ $row['name'] }}" data-expected="{{ $row['expected'] }}"
                                                 value="{{ old("{$prefix}.equipment.{$row['id']}", $row['default']) }}"
                                                 class="form-control form-control-sm" style="width: 5.5rem" required>
                                         </div>
@@ -78,7 +78,7 @@
 
                             <div class="col-12">
                                 <label for="note_{{ $item->id }}" class="form-label">Catatan</label>
-                                <textarea id="note_{{ $item->id }}" name="inspections[{{ $item->id }}][note]" rows="2" maxlength="1000"
+                                <textarea id="note_{{ $item->id }}" name="inspections[{{ $item->id }}][note]" data-summary-label="Catatan" rows="2" maxlength="1000"
                                     class="form-control">{{ old("{$prefix}.note") }}</textarea>
                             </div>
                         </div>

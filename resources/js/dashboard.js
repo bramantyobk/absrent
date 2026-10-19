@@ -124,3 +124,8 @@ if (document.querySelector('[data-vehicle-change], [data-old-unit]')) {
 if (document.querySelector('[data-manual-order]')) {
     import('./dashboard-manual-order');
 }
+
+// Dialog ubah status dan ganti kendaraan: ringkasan konfirmasi sebelum menyimpan
+if (document.querySelector('form[data-confirm-summary]')) {
+    import('./dashboard-inspection-summary');
+}

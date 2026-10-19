@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Api\V1\Dashboard\CompanyProfileController;
 use App\Http\Controllers\Api\V1\Dashboard\CustomerLookupController;
 use App\Http\Controllers\Api\V1\Dashboard\EquipmentItemController;
+use App\Http\Controllers\Api\V1\Dashboard\InspectionController;
 use App\Http\Controllers\Api\V1\Dashboard\ManualOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderVehicleChangeController;
@@ -87,6 +88,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::middleware('role:admin')->group(function () {
             Route::get('company', [CompanyProfileController::class, 'show'])->name('company.show');
             Route::put('company', [CompanyProfileController::class, 'update'])->name('company.update');
+            Route::patch('inspections/{inspection}', [InspectionController::class, 'update'])->name('inspections.update');
             Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('company.whatsapp-template.update');
             Route::apiResource('company/bank-accounts', BankAccountController::class)
                 ->except('destroy')
