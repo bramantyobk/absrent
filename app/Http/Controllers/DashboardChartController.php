@@ -6,9 +6,8 @@ use App\Http\Requests\RevenueChartRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\OrderStatus;
-use App\TransactionStatus;
+use App\Services\RevenueReport;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
 class DashboardChartController extends Controller
 {
@@ -66,37 +65,14 @@ class DashboardChartController extends Controller
         ]);
     }
 
-    public function revenue(RevenueChartRequest $request): JsonResponse
+    public function revenue(RevenueChartRequest $request, RevenueReport $revenueReport): JsonResponse
     {
-        $start = $request->startDate();
-        $end = $request->endDate();
-
-        $totals = OrderItem::query()
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->join('transactions', 'transactions.order_id', '=', 'orders.id')
-            ->join('vehicles', 'vehicles.id', '=', 'order_items.vehicle_id')
-            ->where('transactions.status', TransactionStatus::Paid->value)
-            ->whereIn('orders.status', array_column(self::PAID_ORDER_STATUSES, 'value'))
-            ->whereBetween('transactions.verified_at', [$start, $end])
-            ->when($request->vehicleType(), fn ($query, $type) => $query->where('vehicles.type', $type->value))
-            ->groupBy(DB::raw('DATE(transactions.verified_at)'))
-            ->selectRaw('DATE(transactions.verified_at) as day, SUM(order_items.subtotal) as total')
-            ->toBase()
-            ->pluck('total', 'day');
-
-        $labels = [];
-        $data = [];
-
-        foreach ($start->toPeriod($end) as $day) {
-            $labels[] = $day->format('d/m');
-            $data[] = (int) ($totals[$day->toDateString()] ?? 0);
-        }
-
-        $sum = array_sum($data);
+        $days = $revenueReport->daily($request->startDate(), $request->endDate(), $request->vehicleType());
+        $sum = (int) $days->sum('total');
 
         return response()->json([
-            'labels' => $labels,
-            'data' => $data,
+            'labels' => $days->pluck('label')->all(),
+            'data' => $days->pluck('total')->all(),
             'total' => $sum,
             'total_formatted' => 'Rp'.number_format($sum, 0, ',', '.'),
         ]);

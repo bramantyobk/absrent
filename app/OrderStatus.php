@@ -53,4 +53,15 @@ enum OrderStatus: string
     {
         return [self::Pending, self::Booking, self::Rented];
     }
+
+    /**
+     * Status pesanan yang pendapatannya dihitung (bersama transaksi Lunas): pembayaran sudah diterima dan tidak dikembalikan.
+     * Dicuri tetap dihitung karena ganti rugi diurus di luar sistem, sedangkan Refund, Dibatalkan, dan Gagal tidak.
+     *
+     * @return array<int, self>
+     */
+    public static function revenueStatuses(): array
+    {
+        return [self::Booking, self::Rented, self::Completed, self::Stolen];
+    }
 }

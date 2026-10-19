@@ -5,6 +5,7 @@
         ['label' => 'Dashboard', 'route' => 'dashboard', 'pattern' => 'dashboard', 'icon' => 'home'],
         ['label' => 'Daftar Pesanan', 'route' => 'dashboard.orders.index', 'pattern' => 'dashboard.orders.*', 'icon' => 'wallet'],
         ['label' => 'Transaksi', 'route' => 'dashboard.transactions.index', 'pattern' => 'dashboard.transactions.*', 'icon' => 'receipt'],
+        ['label' => 'Pendapatan', 'route' => 'dashboard.revenue.index', 'pattern' => 'dashboard.revenue.*', 'icon' => 'chart'],
         ['label' => 'Pembatalan', 'route' => 'dashboard.cancellation-requests.index', 'pattern' => 'dashboard.cancellation-requests.*', 'icon' => 'undo'],
         ['label' => 'Kendaraan', 'route' => 'dashboard.vehicles.index', 'pattern' => 'dashboard.vehicles.*', 'icon' => 'car'],
         ['label' => 'Perlengkapan', 'route' => 'dashboard.equipment.index', 'pattern' => 'dashboard.equipment.*', 'icon' => 'tools'],

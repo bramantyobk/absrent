@@ -3,10 +3,12 @@
 use App\Models\BankAccount;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderVehicleChange;
 use App\Models\Transaction;
 use App\Models\Vehicle;
 use App\OrderStatus;
 use App\TransactionStatus;
+use App\VehicleChangeReason;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -90,4 +92,39 @@ function orderWithTransaction(array $orderAttributes = [], array $transactionAtt
 function inspectionPayload(Order $order, array $overrides = []): array
 {
     return $order->items->mapWithKeys(fn (OrderItem $item): array => [$item->id => $overrides + ['odometer_km' => 500000, 'energy_level' => 80]])->all();
+}
+
+/**
+ * Pesanan satu item yang transaksinya diverifikasi pada waktu itu, dengan subtotal tertentu.
+ */
+function revenueOrder(string $verifiedAt, int $subtotal, OrderStatus $status = OrderStatus::Booking, ?Vehicle $vehicle = null, TransactionStatus $transactionStatus = TransactionStatus::Paid): Order
+{
+    $order = orderWithTransaction(
+        ['status' => $status, 'expires_at' => null, 'total_price' => $subtotal],
+        ['status' => $transactionStatus, 'verified_at' => $verifiedAt, 'bank_account_id' => null],
+        $vehicle,
+    );
+    $order->items()->update(['days' => 1, 'unit_price' => $subtotal, 'subtotal' => $subtotal]);
+
+    return $order->refresh();
+}
+
+function revenueChange(Order $order, string $createdAt, int $amount, ?Vehicle $to = null): OrderVehicleChange
+{
+    $item = $order->items()->first();
+    $change = OrderVehicleChange::factory()->create([
+        'order_item_id' => $item->id,
+        'from_vehicle_id' => $item->vehicle_id,
+        'to_vehicle_id' => $to?->id ?? $item->vehicle_id,
+        'reason' => VehicleChangeReason::VehicleDamaged,
+        'final_amount' => $amount,
+        'suggested_amount' => $amount,
+    ]);
+    $change->forceFill(['created_at' => $createdAt])->save();
+
+    if ($to) {
+        $item->update(['vehicle_id' => $to->id]);
+    }
+
+    return $change;
 }
