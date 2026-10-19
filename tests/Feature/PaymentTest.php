@@ -72,13 +72,46 @@ it('warns and blocks confirmation when no bank account is active', function () {
         ->assertSee('Rekening tujuan belum tersedia');
 });
 
-it('returns 404 on the payment page of another customer order and 403 once it is confirmed', function () {
+it('returns 404 on the payment page of another customer order', function () {
     $customer = User::factory()->create();
 
     $this->actingAs(User::factory()->create())->get(route('orders.payment', payableOrder($customer)))->assertNotFound();
+});
 
-    $confirmed = payableOrder($customer, ['code' => 'ABS-PAY00002'], TransactionStatus::Verifying);
-    $this->actingAs($customer)->get(route('orders.payment', $confirmed))->assertForbidden();
+it('redirects the payment page of an order that is past the payment step to the order detail with a message', function (OrderStatus $status, TransactionStatus $transactionStatus, string $label) {
+    $customer = User::factory()->create();
+    $order = payableOrder($customer, ['status' => $status, 'code' => 'ABS-PAY00002'], $transactionStatus);
+
+    $this->actingAs($customer)
+        ->get(route('orders.payment', $order))
+        ->assertRedirect(route('orders.show', $order))
+        ->assertSessionHas('status', "Pesanan ABS-PAY00002 tidak lagi menunggu pembayaran (status: {$label}).");
+})->with([
+    'awaiting verification' => [OrderStatus::Pending, TransactionStatus::Verifying, 'Pending'],
+    'booking' => [OrderStatus::Booking, TransactionStatus::Paid, 'Booking'],
+    'cancelled' => [OrderStatus::Cancelled, TransactionStatus::Cancelled, 'Dibatalkan'],
+    'failed' => [OrderStatus::Failed, TransactionStatus::Failed, 'Gagal'],
+]);
+
+it('opens WhatsApp in a new tab and moves the payment page to the order detail', function () {
+    BankAccount::factory()->create();
+    $customer = User::factory()->create();
+    $order = payableOrder($customer);
+
+    $this->actingAs($customer)
+        ->get(route('orders.payment', $order))
+        ->assertOk()
+        ->assertSee('id="confirm-payment-form" target="_blank" data-payment-confirm', false)
+        ->assertSee('data-after-url="'.route('orders.show', $order).'"', false);
+});
+
+it('opens the resend WhatsApp link in a new tab on the order detail', function () {
+    $customer = User::factory()->create();
+    $order = payableOrder($customer, ['code' => 'ABS-PAY00007'], TransactionStatus::Verifying);
+
+    $this->actingAs($customer)
+        ->get(route('orders.show', $order))
+        ->assertSee('href="'.route('orders.whatsapp', $order).'" target="_blank" rel="noopener"', false);
 });
 
 it('confirms payment, moves the transaction to verifying, and redirects to the rotator operator on WhatsApp', function () {

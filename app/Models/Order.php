@@ -67,6 +67,20 @@ class Order extends Model
     }
 
     /**
+     * Pesanan Disewa yang terlambat: ada item yang `end_at`-nya sudah melewati jeda pengembalian, sehingga unit masih ditahan
+     * dan staf perlu menyelesaikannya.
+     *
+     * @param  Builder<Order>  $query
+     */
+    #[Scope]
+    protected function overdue(Builder $query): void
+    {
+        $query
+            ->where('status', OrderStatus::Rented)
+            ->whereHas('items', fn (Builder $items) => $items->where('end_at', '<', now()->subHours(config('rental.return_buffer_hours'))));
+    }
+
+    /**
      * Staf pembuat pesanan manual (kosong untuk pesanan online).
      *
      * @return BelongsTo<User, $this>

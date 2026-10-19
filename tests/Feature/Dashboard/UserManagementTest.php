@@ -41,11 +41,11 @@ it('requires the admin role for every user management action', function (string 
 ]);
 
 it('lists users with search, role, and status filters', function () {
-    User::factory()->create(['name' => 'Andi Pelanggan']);
+    User::factory()->create(['name' => 'Andi Pelanggan', 'email' => 'andi@absrent.test']);
     User::factory()->operator()->create(['name' => 'Rina Operator', 'email' => 'rina@absrent.test']);
-    User::factory()->operator()->inactive()->create(['name' => 'Tono Operator']);
+    User::factory()->operator()->inactive()->create(['name' => 'Tono Operator', 'email' => 'tono@absrent.test']);
 
-    $this->actingAs(User::factory()->admin()->create(['name' => 'Admin Utama']));
+    $this->actingAs(User::factory()->admin()->create(['name' => 'Admin Utama', 'email' => 'admin.utama@absrent.test']));
 
     $names = fn (array $query) => $this->get(route('dashboard.users.index', $query))
         ->assertOk()

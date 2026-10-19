@@ -18,11 +18,20 @@
         <h2 class="card-heading mb-0">{{ $order->code }}</h2>
         <span class="d-flex gap-1">
             <x-status-badge :status="$order->status" />
+            @if ($isOverdueRental)
+                <span class="status-badge status-batal">Terlambat</span>
+            @endif
             @if ($order->transaction)
                 <x-status-badge :status="$order->transaction->status" />
             @endif
         </span>
     </div>
+
+    @if ($isOverdueRental)
+        <div class="alert alert-warning" role="alert">
+            Pesanan ini terlambat dikembalikan. Unit masih ditahan sampai Anda menyelesaikannya lewat inspeksi pengembalian.
+        </div>
+    @endif
 
     <div class="row g-4">
         <div class="col-12 col-lg-8">
@@ -109,14 +118,15 @@
                 @forelse ($order->items as $item)
                     @foreach ($item->inspections->sortBy('id') as $inspection)
                         <div class="{{ $loop->parent->first && $loop->first ? '' : 'border-top pt-3 mt-3' }}">
+                            @php($inspectedVehicle = $inspection->vehicle)
                             <div class="d-flex flex-wrap justify-content-between gap-2">
-                                <span class="fw-semibold">{{ $inspection->type->label() }} &middot; {{ $item->vehicle->brand }} {{ $item->vehicle->model }}</span>
+                                <span class="fw-semibold">{{ $inspection->type->label() }} &middot; {{ $inspectedVehicle->brand }} {{ $inspectedVehicle->model }}</span>
                                 <span class="small text-body-secondary">{{ $inspection->inspected_at->format('d/m/Y H:i') }} &middot; {{ $inspection->inspector?->name }}</span>
                             </div>
                             <div class="small">
                                 Odometer {{ number_format($inspection->odometer_km, 0, ',', '.') }} km
                                 @if ($inspection->energy_level !== null)
-                                    &middot; {{ $item->vehicle->drive_type?->energyLabel() ?? 'Bensin' }} {{ $inspection->energy_level }}%
+                                    &middot; {{ $inspectedVehicle->drive_type?->energyLabel() ?? 'Bensin' }} {{ $inspection->energy_level }}%
                                 @endif
                             </div>
                             @if ($inspection->equipment_checks)
@@ -187,12 +197,18 @@
 
             @if ($canCancelExpired)
                 <div class="card-custom p-4 mb-4 border-warning">
-                    <h3 class="card-heading fs-6">Melewati batas konfirmasi</h3>
+                    @php($isAwaitingVerification = $order->transaction?->status === \App\TransactionStatus::Verifying)
+                    <h3 class="card-heading fs-6">{{ $isAwaitingVerification ? 'Melewati batas verifikasi' : 'Melewati batas konfirmasi' }}</h3>
                     <p class="small text-body-secondary">
-                        Pelanggan tidak mengonfirmasi pembayaran sampai {{ $order->expires_at->format('d/m/Y H:i') }} {{ config('rental.timezone_label') }}.
-                        Pesanan dibatalkan otomatis oleh scheduler, atau Anda dapat membatalkannya sekarang agar jadwal kendaraan langsung dilepas.
+                        @if ($isAwaitingVerification)
+                            Pembayaran belum diverifikasi sampai {{ $order->expires_at->format('d/m/Y H:i') }} {{ config('rental.timezone_label') }}.
+                            Pesanan digagalkan otomatis oleh scheduler, atau Anda dapat menggagalkannya sekarang agar jadwal kendaraan langsung dilepas. Pelanggan tidak dapat konfirmasi ulang.
+                        @else
+                            Pelanggan tidak mengonfirmasi pembayaran sampai {{ $order->expires_at->format('d/m/Y H:i') }} {{ config('rental.timezone_label') }}.
+                            Pesanan dibatalkan otomatis oleh scheduler, atau Anda dapat membatalkannya sekarang agar jadwal kendaraan langsung dilepas.
+                        @endif
                     </p>
-                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelExpiredModal">Batalkan pesanan</button>
+                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelExpiredModal">{{ $isAwaitingVerification ? 'Gagalkan pesanan' : 'Batalkan pesanan' }}</button>
                 </div>
             @endif
 
@@ -226,7 +242,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
-                        Pesanan <strong>{{ $order->code }}</strong> dan transaksinya menjadi Dibatalkan, dan jadwal kendaraan dilepas. Tindakan ini tidak dapat dibatalkan.
+                        @if ($order->transaction?->status === \App\TransactionStatus::Verifying)
+                            Pesanan <strong>{{ $order->code }}</strong> dan transaksinya menjadi Gagal (final), dan jadwal kendaraan dilepas. Tindakan ini tidak dapat dibatalkan.
+                        @else
+                            Pesanan <strong>{{ $order->code }}</strong> dan transaksinya menjadi Dibatalkan, dan jadwal kendaraan dilepas. Tindakan ini tidak dapat dibatalkan.
+                        @endif
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Kembali</button>

@@ -16,7 +16,8 @@
 
     <div class="row g-4">
         <div class="col-12 col-lg-8">
-            <form method="POST" action="{{ route('orders.confirm', $order) }}" id="confirm-payment-form" novalidate>
+            <form method="POST" action="{{ route('orders.confirm', $order) }}" id="confirm-payment-form" target="_blank" data-payment-confirm
+                data-after-url="{{ route('orders.show', $order) }}">
                 @csrf
 
                 <div class="summary-card mb-3">

@@ -26,6 +26,7 @@ class OrderController extends Controller
         $orders = Order::query()
             ->filter($filters)
             ->with(['user', 'items.vehicle', 'transaction'])
+            ->withExists(['items as has_overdue_item' => fn ($query) => $query->where('end_at', '<', now()->subHours(config('rental.return_buffer_hours')))])
             ->withExists(['cancellationRequests as has_pending_cancellation' => fn ($query) => $query->where('status', CancellationStatus::Pending)])
             ->latest('id')
             ->paginate($filters['per_page'] ?? 10)
@@ -43,7 +44,7 @@ class OrderController extends Controller
     {
         Gate::authorize('manage', $order);
 
-        $order->load(['user', 'creator', 'items.vehicle', 'items.inspections.inspector', 'items.vehicleChanges.fromVehicle', 'items.vehicleChanges.toVehicle', 'items.vehicleChanges.changedBy', 'transaction.bankAccount', 'transaction.verifier', 'assignedOperator', 'cancellationRequests.handler']);
+        $order->load(['user', 'creator', 'items.vehicle', 'items.inspections.inspector', 'items.inspections.vehicle', 'items.vehicleChanges.fromVehicle', 'items.vehicleChanges.toVehicle', 'items.vehicleChanges.changedBy', 'transaction.bankAccount', 'transaction.verifier', 'assignedOperator', 'cancellationRequests.handler']);
 
         $inspectionType = $inspectionForm->typeFor($order);
 
@@ -51,7 +52,8 @@ class OrderController extends Controller
         $changes = $order->items->flatMap->vehicleChanges->sortByDesc('id')->values();
 
         return view('dashboard.orders.show', [
-            'canCancelExpired' => $order->status === OrderStatus::Pending && $order->transaction?->status === TransactionStatus::Pending && $order->expires_at?->isPast() === true,
+            'canCancelExpired' => $order->status === OrderStatus::Pending && in_array($order->transaction?->status, [TransactionStatus::Pending, TransactionStatus::Verifying], true) && $order->expires_at?->isPast() === true,
+            'isOverdueRental' => $order->status === OrderStatus::Rented && $order->items->contains(fn ($item) => $item->end_at->lt(now()->subHours(config('rental.return_buffer_hours')))),
             'canChangeVehicle' => $canChangeVehicle,
             'replacements' => $canChangeVehicle ? $order->items->mapWithKeys(fn ($item): array => [$item->id => $replacementOptions->for($item->setRelation('order', $order))]) : collect(),
             'returnUnits' => $order->status === OrderStatus::Rented ? $inspectionForm->for($order, InspectionType::Return)->keyBy(fn (array $unit): int => $unit['item']->id) : collect(),

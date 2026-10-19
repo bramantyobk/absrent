@@ -59,6 +59,20 @@
         </div>
 
         <div class="col-12 col-lg-7">
+            @if ($canVerify && $transaction->order->expires_at?->isPast())
+                <div class="card-custom p-4 mb-4 border-warning">
+                    <h3 class="card-heading fs-6">Melewati batas verifikasi</h3>
+                    <p class="small text-body-secondary">
+                        Batas verifikasi terlewati sejak {{ $transaction->order->expires_at->format('d/m/Y H:i') }} {{ config('rental.timezone_label') }}.
+                        Scheduler akan menggagalkan transaksi ini, atau Anda dapat menggagalkannya sekarang tanpa mengisi alasan. Anda masih dapat memverifikasi di bawah.
+                    </p>
+                    <form method="POST" action="{{ route('dashboard.orders.cancel', $transaction->order) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger">Gagalkan transaksi dan pesanan</button>
+                    </form>
+                </div>
+            @endif
+
             @if ($canVerify)
                 <form method="POST" action="{{ route('dashboard.transactions.verify', $transaction) }}" enctype="multipart/form-data" class="card-custom p-4" novalidate>
                     @csrf

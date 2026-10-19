@@ -14,9 +14,17 @@ use Illuminate\View\View;
 
 class OrderPaymentController extends Controller
 {
-    public function show(Order $order): View
+    public function show(Order $order): View|RedirectResponse
     {
-        Gate::authorize('pay', $order->loadMissing('transaction'));
+        Gate::authorize('view', $order);
+
+        $order->loadMissing('transaction');
+
+        if (Gate::denies('pay', $order)) {
+            return redirect()
+                ->route('orders.show', $order)
+                ->with('status', "Pesanan {$order->code} tidak lagi menunggu pembayaran (status: {$order->status->label()}).");
+        }
 
         $order->load('items.vehicle');
 

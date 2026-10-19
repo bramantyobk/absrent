@@ -26,6 +26,7 @@ class DashboardController extends Controller
             'verification' => [
                 'waiting' => Transaction::query()->where('status', TransactionStatus::Verifying)->count(),
                 'nearExpiry' => Transaction::query()->nearExpiry()->count(),
+                'overdueRentals' => Order::query()->overdue()->count(),
                 'pendingCancellations' => CancellationRequest::query()->where('status', CancellationStatus::Pending)->count(),
             ],
             'vehicleTypes' => VehicleType::cases(),

@@ -139,3 +139,30 @@ it('does not touch other orders when changing one status', function () {
 
     expect($second->refresh()->status)->toBe(OrderStatus::Booking)->and(Order::count())->toBe(2);
 });
+
+it('marks only rented orders past the return buffer as late on the list, the detail, and the dashboard', function () {
+    $late = orderWithTransaction(['status' => OrderStatus::Rented, 'expires_at' => null, 'code' => 'ABS-LATE0001'], ['status' => TransactionStatus::Paid]);
+    $late->items()->update(['start_at' => '2026-10-09 08:00:00', 'end_at' => '2026-10-12 06:00:00']);
+    $running = orderWithTransaction(['status' => OrderStatus::Rented, 'expires_at' => null, 'code' => 'ABS-RUN00002'], ['status' => TransactionStatus::Paid]);
+    $running->items()->update(['start_at' => '2026-10-11 08:00:00', 'end_at' => '2026-10-14 08:00:00']);
+    $withinBuffer = orderWithTransaction(['status' => OrderStatus::Rented, 'expires_at' => null, 'code' => 'ABS-BUF00003'], ['status' => TransactionStatus::Paid]);
+    $withinBuffer->items()->update(['start_at' => '2026-10-09 08:00:00', 'end_at' => '2026-10-12 08:00:00']);
+    $pastBooking = orderWithTransaction(['status' => OrderStatus::Booking, 'expires_at' => null, 'code' => 'ABS-BOOK0004'], ['status' => TransactionStatus::Paid]);
+    $pastBooking->items()->update(['start_at' => '2026-10-01 08:00:00', 'end_at' => '2026-10-03 08:00:00']);
+    $this->actingAs(User::factory()->operator()->create());
+
+    expect(Order::query()->overdue()->pluck('code')->all())->toBe(['ABS-LATE0001']);
+
+    $this->get(route('dashboard.orders.index'))->assertOk()->assertSee('Terlambat', false);
+    expect(substr_count($this->get(route('dashboard.orders.index'))->getContent(), '>Terlambat<'))->toBe(1);
+
+    $this->get(route('dashboard.orders.show', $late))->assertSee('terlambat dikembalikan')->assertSee('>Terlambat<', false);
+    $this->get(route('dashboard.orders.show', $running))->assertDontSee('terlambat dikembalikan');
+    $this->get(route('dashboard.orders.show', $pastBooking))->assertDontSee('terlambat dikembalikan');
+
+    $this->get(route('dashboard'))->assertSee('1 pesanan Disewa terlambat dikembalikan')->assertSee('Pesanan terlambat');
+});
+
+it('does not show the late banner when no rented order is late', function () {
+    $this->actingAs(User::factory()->operator()->create())->get(route('dashboard'))->assertDontSee('terlambat dikembalikan');
+});

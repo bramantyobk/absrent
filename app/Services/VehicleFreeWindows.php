@@ -37,6 +37,11 @@ class VehicleFreeWindows
                 return [$item->start_at, $isLate ? $horizon : $releasedAt];
             })
             ->merge(
+                $vehicle->conflictingUnreturnedChanges($horizon)
+                    ->toBase()
+                    ->map(fn ($change): array => [$change->orderItem->start_at, $horizon])
+            )
+            ->merge(
                 $vehicle->schedules()
                     ->overlapping($from, $horizon)
                     ->get()

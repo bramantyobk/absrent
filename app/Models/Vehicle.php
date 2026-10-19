@@ -161,6 +161,22 @@ class Vehicle extends Model
     }
 
     /**
+     * Penggantian kendaraan yang meninggalkan unit ini dan belum diinspeksi (Ditunda): unit belum kembali, sehingga menahan
+     * jadwal mulai dari awal sewa pesanan itu (aturan yang sama dengan `availableBetween`).
+     *
+     * @return Collection<int, OrderVehicleChange>
+     */
+    public function conflictingUnreturnedChanges(CarbonInterface $end): Collection
+    {
+        return $this->outgoingChanges()
+            ->where('old_vehicle_status', OldVehicleStatus::Pending)
+            ->whereHas('orderItem', fn (Builder $items) => $items->where('start_at', '<', $end))
+            ->with('orderItem.order')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
      * @return Collection<int, VehicleSchedule>
      */
     public function conflictingSchedules(CarbonInterface $start, CarbonInterface $end, ?int $ignoreScheduleId = null): Collection

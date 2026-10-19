@@ -87,6 +87,9 @@
                                     @if ($order->transaction && $order->status === \App\OrderStatus::Pending)
                                         <x-status-badge :status="$order->transaction->status" />
                                     @endif
+                                    @if ($order->status === \App\OrderStatus::Rented && $order->has_overdue_item)
+                                        <span class="status-badge status-batal">Terlambat</span>
+                                    @endif
                                     @if ($order->isManual())
                                         <span class="status-badge status-returned">Manual</span>
                                     @endif

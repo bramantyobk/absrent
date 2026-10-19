@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BankAccount;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -53,14 +54,13 @@ it('rejects cancelling before the deadline', function () {
     expect($order->refresh()->status)->toBe(OrderStatus::Pending);
 });
 
-it('rejects cancelling orders the customer already confirmed or that are in another state', function (OrderStatus $status, TransactionStatus $transactionStatus) {
+it('rejects cancelling orders that are in another state', function (OrderStatus $status, TransactionStatus $transactionStatus) {
     $order = orderWithTransaction(['status' => $status, 'expires_at' => '2026-10-12 09:00:00'], ['status' => $transactionStatus]);
 
     $this->actingAs(User::factory()->operator()->create())->post(route('dashboard.orders.cancel', $order))->assertSessionHasErrors('order');
 
     expect($order->refresh()->status)->toBe($status)->and($order->transaction->status)->toBe($transactionStatus);
 })->with([
-    'confirmed, awaiting verification' => [OrderStatus::Pending, TransactionStatus::Verifying],
     'paid booking' => [OrderStatus::Booking, TransactionStatus::Paid],
     'already cancelled' => [OrderStatus::Cancelled, TransactionStatus::Cancelled],
 ]);
@@ -70,7 +70,8 @@ it('shows the cancel action only past the deadline for unconfirmed orders', func
 
     $this->get(route('dashboard.orders.show', unconfirmedOrder('2026-10-12 09:00:00')))->assertSee('Melewati batas konfirmasi')->assertSee('cancelExpiredModal');
     $this->get(route('dashboard.orders.show', unconfirmedOrder('2026-10-13 09:00:00')))->assertDontSee('cancelExpiredModal');
-    $this->get(route('dashboard.orders.show', orderWithTransaction(['expires_at' => '2026-10-12 09:00:00'])))->assertDontSee('cancelExpiredModal');
+    $this->get(route('dashboard.orders.show', orderWithTransaction(['status' => OrderStatus::Booking, 'expires_at' => '2026-10-12 09:00:00'], ['status' => TransactionStatus::Paid])))->assertDontSee('cancelExpiredModal');
+    $this->get(route('dashboard.orders.show', orderWithTransaction(['expires_at' => '2026-10-13 09:00:00'])))->assertDontSee('cancelExpiredModal');
 });
 
 it('points from the transaction page of an unconfirmed order to the order page', function () {
@@ -94,4 +95,56 @@ it('cancels through the api and rejects invalid cases with 422', function () {
         ->assertJsonPath('data.transaction.status', 'cancelled');
 
     $this->postJson(route('api.v1.dashboard.orders.cancel', $early))->assertUnprocessable()->assertJsonValidationErrors('order');
+});
+
+it('lets staff fail an order awaiting verification past the verification deadline, recording who, releasing the vehicle', function (string $role) {
+    $staff = User::factory()->{$role}()->create(['name' => 'Siti Operator']);
+    $order = orderWithTransaction(['expires_at' => '2026-10-12 09:59:00'], ['status' => TransactionStatus::Verifying]);
+    $order->items()->update(['start_at' => '2026-10-20 08:00:00', 'end_at' => '2026-10-22 08:00:00']);
+    $item = $order->items()->first();
+
+    $this->actingAs($staff)->post(route('dashboard.orders.cancel', $order))
+        ->assertRedirect(route('dashboard.orders.show', $order))
+        ->assertSessionHas('status', "Pesanan {$order->code} digagalkan karena batas verifikasi terlewati.");
+
+    $order->refresh();
+
+    expect($order->status)->toBe(OrderStatus::Failed)
+        ->and($order->status_note)->toBe('Verifikasi tidak dilakukan dalam batas waktu (digagalkan oleh Siti Operator)')
+        ->and($order->transaction->status)->toBe(TransactionStatus::Failed)
+        ->and($order->transaction->note)->toBe($order->status_note)
+        ->and(Vehicle::query()->availableBetween($item->start_at, $item->end_at)->whereKey($item->vehicle_id)->exists())->toBeTrue();
+
+    $this->actingAs(User::findOrFail($order->user_id))
+        ->post(route('orders.confirm', $order), ['bank_account_id' => BankAccount::factory()->create()->id])
+        ->assertForbidden();
+})->with(['operator', 'admin']);
+
+it('rejects failing an order awaiting verification before the verification deadline', function () {
+    $order = orderWithTransaction(['expires_at' => '2026-10-12 10:00:01'], ['status' => TransactionStatus::Verifying]);
+
+    $this->actingAs(User::factory()->operator()->create())->post(route('dashboard.orders.cancel', $order))->assertSessionHasErrors('order');
+
+    expect($order->refresh()->status)->toBe(OrderStatus::Pending)->and($order->transaction->status)->toBe(TransactionStatus::Verifying);
+});
+
+it('shows the fail action on the order and transaction pages only past the verification deadline', function () {
+    $overdue = orderWithTransaction(['expires_at' => '2026-10-12 09:00:00'], ['status' => TransactionStatus::Verifying]);
+    $early = orderWithTransaction(['expires_at' => '2026-10-13 09:00:00'], ['status' => TransactionStatus::Verifying]);
+    $this->actingAs(User::factory()->operator()->create());
+
+    $this->get(route('dashboard.orders.show', $overdue))->assertSee('Melewati batas verifikasi')->assertSee('Gagalkan pesanan')->assertSee('cancelExpiredModal');
+    $this->get(route('dashboard.transactions.show', $overdue->transaction))->assertSee('Melewati batas verifikasi')->assertSee('Gagalkan transaksi dan pesanan');
+    $this->get(route('dashboard.orders.show', $early))->assertDontSee('cancelExpiredModal');
+    $this->get(route('dashboard.transactions.show', $early->transaction))->assertDontSee('Gagalkan transaksi dan pesanan');
+});
+
+it('fails an order awaiting verification through the api', function () {
+    $overdue = orderWithTransaction(['expires_at' => '2026-10-12 09:00:00'], ['status' => TransactionStatus::Verifying]);
+    Sanctum::actingAs(User::factory()->operator()->create());
+
+    $this->postJson(route('api.v1.dashboard.orders.cancel', $overdue))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'failed')
+        ->assertJsonPath('data.transaction.status', 'failed');
 });

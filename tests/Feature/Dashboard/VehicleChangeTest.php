@@ -11,9 +11,11 @@ use App\Models\VehicleSchedule;
 use App\OldVehicleStatus;
 use App\OrderStatus;
 use App\Services\ReplacementOptions;
+use App\Services\VehicleFreeWindows;
 use App\Services\VehicleTimeline;
 use App\TransactionStatus;
 use App\VehicleChangeReason;
+use App\VehicleDriveType;
 use App\VehicleStatus;
 
 beforeEach(function () {
@@ -435,4 +437,45 @@ it('renders the change dialogs only for booking and rented orders and lists hist
         ->assertSee('Ditunda')
         ->assertSee('Selesaikan unit lama')
         ->assertSee('Unit masih di lokasi.');
+});
+
+it('labels each inspection with the unit that was inspected, including the energy label across drive types', function () {
+    $old = Vehicle::factory()->motorcycle()->create(['brand' => 'Honda', 'model' => 'Beat', 'drive_type' => VehicleDriveType::Automatic, 'odometer_km' => 1000]);
+    $new = Vehicle::factory()->motorcycle()->create(['brand' => 'Yamaha', 'model' => 'Gear Listrik', 'drive_type' => VehicleDriveType::Electric, 'odometer_km' => 5000]);
+    $order = rentedWithPickup($old);
+    $this->actingAs(User::factory()->operator()->create());
+    $this->post(changeUrl($order), rentedChangePayload($new, ['reason' => 'customer_request']))->assertSessionHasNoErrors();
+
+    $this->get(route('dashboard.orders.show', $order))
+        ->assertSeeInOrder([
+            'Pengambilan', 'Honda Beat', 'Bensin 100%',
+            'Pengembalian', 'Honda Beat', 'Bensin 40%',
+            'Pengambilan', 'Yamaha Gear Listrik', 'Baterai 100%',
+        ]);
+});
+
+it('rejects maintenance on a postponed old unit with the order code, and allows it again once the unit is settled', function () {
+    $old = Vehicle::factory()->motorcycle()->create(['odometer_km' => 1000]);
+    $order = rentedWithPickup($old);
+    $new = Vehicle::factory()->motorcycle()->create(['odometer_km' => 5000]);
+    $this->actingAs(User::factory()->operator()->create());
+    $this->post(changeUrl($order), rentedChangePayload($new, ['old_vehicle' => ['status' => 'pending', 'note' => 'Unit masih di lokasi.']]))->assertSessionHasNoErrors();
+    $maintenance = ['type' => 'maintenance', 'start_at' => '2026-10-20T09:00', 'end_at' => '2026-10-20T17:00', 'note' => 'Ganti oli'];
+    $existing = VehicleSchedule::factory()->for($old)->create(['start_at' => '2026-10-25 09:00:00', 'end_at' => '2026-10-25 17:00:00']);
+
+    $this->post(route('dashboard.vehicles.schedules.store', $old), $maintenance)
+        ->assertSessionHasErrorsIn('schedule', 'start_at');
+    expect(session('errors')->getBag('schedule')->first('start_at'))->toContain($order->code)->toContain('Selesaikan inspeksi');
+
+    $this->put(route('dashboard.vehicles.schedules.update', [$old, $existing]), $maintenance)->assertSessionHasErrorsIn('schedule', 'start_at');
+    expect($old->schedules()->count())->toBe(1)
+        ->and(app(VehicleFreeWindows::class)->for($old->refresh(), now()))->toHaveCount(0);
+
+    $this->patch(route('dashboard.vehicle-changes.old-vehicle.update', OrderVehicleChange::sole()), ['action' => 'returned', 'inspection' => ['odometer_km' => 1150, 'energy_level' => 30]])
+        ->assertSessionHasNoErrors();
+
+    $this->post(route('dashboard.vehicles.schedules.store', $old), $maintenance)->assertSessionHasNoErrors();
+
+    expect($old->schedules()->count())->toBe(2)
+        ->and(app(VehicleFreeWindows::class)->for($old->refresh(), now()))->not->toHaveCount(0);
 });

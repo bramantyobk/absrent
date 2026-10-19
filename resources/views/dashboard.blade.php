@@ -3,7 +3,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    @if ($verification['waiting'] > 0 || $verification['pendingCancellations'] > 0)
+    @if ($verification['waiting'] > 0 || $verification['pendingCancellations'] > 0 || $verification['overdueRentals'] > 0)
         <div class="alert {{ $verification['nearExpiry'] > 0 ? 'alert-danger' : 'alert-warning' }} d-flex flex-wrap gap-3 justify-content-between align-items-center" role="alert">
             <div>
                 @if ($verification['waiting'] > 0)
@@ -15,6 +15,9 @@
                 @if ($verification['pendingCancellations'] > 0)
                     <strong>{{ $verification['pendingCancellations'] }} pengajuan pembatalan menunggu keputusan.</strong>
                 @endif
+                @if ($verification['overdueRentals'] > 0)
+                    <strong>{{ $verification['overdueRentals'] }} pesanan Disewa terlambat dikembalikan.</strong>
+                @endif
             </div>
             <div class="d-flex gap-2">
                 @if ($verification['waiting'] > 0)
@@ -22,6 +25,9 @@
                 @endif
                 @if ($verification['pendingCancellations'] > 0)
                     <a href="{{ route('dashboard.cancellation-requests.index', ['status' => 'pending']) }}" class="btn btn-sm btn-outline-primary">Pembatalan</a>
+                @endif
+                @if ($verification['overdueRentals'] > 0)
+                    <a href="{{ route('dashboard.orders.index', ['status' => 'rented']) }}" class="btn btn-sm btn-outline-primary">Pesanan terlambat</a>
                 @endif
             </div>
         </div>
