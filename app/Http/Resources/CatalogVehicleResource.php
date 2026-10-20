@@ -20,6 +20,7 @@ class CatalogVehicleResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'slug' => $this->slug,
             'brand' => $this->brand,
             'model' => $this->model,
             'type' => $this->type->value,

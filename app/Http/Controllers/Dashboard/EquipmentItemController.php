@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Actions\Equipment\CreateEquipmentItem;
+use App\Actions\Equipment\DeleteEquipmentItem;
 use App\Actions\Equipment\UpdateEquipmentItem;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EquipmentItemFilterRequest;
@@ -65,5 +66,16 @@ class EquipmentItemController extends Controller
         return redirect()
             ->route('dashboard.equipment.index')
             ->with('status', 'Perlengkapan berhasil diperbarui.');
+    }
+
+    public function destroy(EquipmentItem $equipment, DeleteEquipmentItem $deleteEquipmentItem): RedirectResponse
+    {
+        Gate::authorize('delete', $equipment);
+
+        $deleteEquipmentItem->handle($equipment);
+
+        return redirect()
+            ->route('dashboard.equipment.index')
+            ->with('status', "Perlengkapan {$equipment->name} berhasil dihapus.");
     }
 }

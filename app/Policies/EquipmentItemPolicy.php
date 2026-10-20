@@ -6,7 +6,7 @@ use App\Models\EquipmentItem;
 use App\Models\User;
 
 /**
- * Perlengkapan tidak dihapus, hanya dinonaktifkan, jadi tidak ada ability delete.
+ * Perlengkapan dikelola staf. Dapat dinonaktifkan (ubah) atau dihapus permanen (aman bagi riwayat karena inspeksi memakai snapshot).
  */
 class EquipmentItemPolicy
 {
@@ -26,6 +26,11 @@ class EquipmentItemPolicy
     }
 
     public function update(User $actor, EquipmentItem $equipmentItem): bool
+    {
+        return $actor->isStaff();
+    }
+
+    public function delete(User $actor, EquipmentItem $equipmentItem): bool
     {
         return $actor->isStaff();
     }

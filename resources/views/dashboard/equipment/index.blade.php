@@ -66,6 +66,9 @@
                             </td>
                             <td class="text-end text-nowrap">
                                 <a href="{{ route('dashboard.equipment.edit', $item) }}" class="btn btn-sm btn-outline-primary">Ubah</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEquipmentModal"
+                                    data-delete-url="{{ route('dashboard.equipment.destroy', $item) }}"
+                                    data-delete-name="{{ $item->name }} ({{ $item->category->label() }})">Hapus</button>
                             </td>
                         </tr>
                     @empty
@@ -86,4 +89,6 @@
             </div>
         @endif
     </div>
+
+    <x-dashboard.confirm-delete-modal id="deleteEquipmentModal" title="Hapus perlengkapan?" />
 @endsection

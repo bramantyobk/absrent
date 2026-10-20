@@ -46,9 +46,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     });
 
     Route::get('vehicles', [CatalogVehicleController::class, 'index'])->name('vehicles.index');
-    Route::get('vehicles/{vehicle}', [CatalogVehicleController::class, 'show'])->name('vehicles.show');
-    Route::get('vehicles/{vehicle}/quote', [CatalogVehicleController::class, 'quote'])->name('vehicles.quote');
-    Route::get('vehicles/{vehicle}/return-options', [CatalogVehicleController::class, 'returnOptions'])->name('vehicles.return-options');
+    Route::get('vehicles/{vehicle:slug}', [CatalogVehicleController::class, 'show'])->name('vehicles.show');
+    Route::get('vehicles/{vehicle:slug}/quote', [CatalogVehicleController::class, 'quote'])->name('vehicles.quote');
+    Route::get('vehicles/{vehicle:slug}/return-options', [CatalogVehicleController::class, 'returnOptions'])->name('vehicles.return-options');
 
     Route::middleware(['auth:sanctum', 'active', 'role:user'])->group(function () {
         Route::get('terms', [TermsController::class, 'show'])->name('terms.show');
@@ -82,7 +82,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::patch('cancellation-requests/{cancellationRequest}', [CancellationRequestController::class, 'update'])->name('cancellation-requests.update');
 
         Route::apiResource('vehicles', VehicleController::class);
-        Route::apiResource('equipment', EquipmentItemController::class)->except('destroy');
+        Route::apiResource('equipment', EquipmentItemController::class);
         Route::get('vehicles/{vehicle}/free-windows', [VehicleAvailabilityController::class, 'freeWindows'])->name('vehicles.free-windows');
         Route::get('vehicles/{vehicle}/timeline', [VehicleAvailabilityController::class, 'timeline'])->name('vehicles.timeline');
         Route::apiResource('vehicles.schedules', VehicleScheduleController::class)->except('show')->scoped();

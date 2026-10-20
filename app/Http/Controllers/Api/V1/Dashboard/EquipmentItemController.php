@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Dashboard;
 
 use App\Actions\Equipment\CreateEquipmentItem;
+use App\Actions\Equipment\DeleteEquipmentItem;
 use App\Actions\Equipment\UpdateEquipmentItem;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EquipmentItemFilterRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\UpdateEquipmentItemRequest;
 use App\Http\Resources\EquipmentItemResource;
 use App\Models\EquipmentItem;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 class EquipmentItemController extends Controller
@@ -63,5 +65,21 @@ class EquipmentItemController extends Controller
     public function update(UpdateEquipmentItemRequest $request, EquipmentItem $equipment, UpdateEquipmentItem $updateEquipmentItem): EquipmentItemResource
     {
         return new EquipmentItemResource($updateEquipmentItem->handle($equipment, $request->validated()));
+    }
+
+    /**
+     * Hapus perlengkapan
+     *
+     * Menghapus permanen. Riwayat inspeksi tidak terpengaruh karena memakai snapshot ceklis sendiri. Untuk menyembunyikan saja,
+     * ubah `is_active` menjadi false.
+     */
+    public function destroy(EquipmentItem $equipment, DeleteEquipmentItem $deleteEquipmentItem): Response
+    {
+        Gate::authorize('delete', $equipment);
+
+        $deleteEquipmentItem->handle($equipment);
+
+        /** @status 204 */
+        return response()->noContent();
     }
 }

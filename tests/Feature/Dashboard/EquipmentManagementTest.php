@@ -3,6 +3,7 @@
 use App\Models\EquipmentItem;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleInspection;
 use App\VehicleType;
 
 function validEquipmentData(array $overrides = []): array
@@ -136,16 +137,48 @@ it('rejects renaming equipment to a name that exists in its category', function 
         ->assertSessionHasErrors('name');
 });
 
-it('deactivates equipment instead of deleting it', function () {
+it('deactivates equipment without deleting it', function () {
     $item = EquipmentItem::factory()->create();
     $this->actingAs(User::factory()->admin()->create());
-
-    $this->delete("/dashboard/equipment/{$item->id}")->assertStatus(405);
 
     $this->put(route('dashboard.equipment.update', $item), validEquipmentData(['name' => $item->name, 'is_active' => '0']))
         ->assertSessionHasNoErrors();
 
     expect($item->fresh()->is_active)->toBeFalse();
+});
+
+it('rejects guests and customers on the delete route', function () {
+    $item = EquipmentItem::factory()->create();
+
+    $this->delete(route('dashboard.equipment.destroy', $item))->assertRedirect(route('login'));
+    $this->actingAs(User::factory()->create())->delete(route('dashboard.equipment.destroy', $item))->assertForbidden();
+
+    expect($item->fresh())->not->toBeNull();
+});
+
+it('lets staff delete equipment permanently and keeps the inspection snapshot intact', function (string $role) {
+    $item = EquipmentItem::factory()->motorcycle()->create(['name' => 'Helm SNI', 'quantity' => 2]);
+    $inspection = VehicleInspection::factory()->create([
+        'equipment_checks' => [['equipment_item_id' => $item->id, 'name' => 'Helm SNI', 'expected' => 2, 'checked' => 2]],
+    ]);
+
+    $this->actingAs(User::factory()->{$role}()->create())
+        ->delete(route('dashboard.equipment.destroy', $item))
+        ->assertRedirect(route('dashboard.equipment.index'))
+        ->assertSessionHas('status');
+
+    expect(EquipmentItem::find($item->id))->toBeNull()
+        ->and($inspection->fresh()->equipment_checks[0])->toMatchArray(['name' => 'Helm SNI', 'expected' => 2, 'checked' => 2]);
+})->with(['operator', 'admin']);
+
+it('shows a delete button with a confirmation modal on the equipment list', function () {
+    $item = EquipmentItem::factory()->create();
+
+    $this->actingAs(User::factory()->operator()->create())
+        ->get(route('dashboard.equipment.index'))
+        ->assertOk()
+        ->assertSee('data-delete-url="'.route('dashboard.equipment.destroy', $item).'"', false)
+        ->assertSee('id="deleteEquipmentModal"', false);
 });
 
 it('lists only active equipment of the vehicle category on the vehicle detail', function () {

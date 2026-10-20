@@ -78,11 +78,17 @@ it('keeps an item active when an update omits is_active, and deactivates it on r
         ->assertJsonPath('data.is_active', false);
 });
 
-it('has no delete endpoint for equipment', function () {
+it('deletes equipment through the api for staff only', function () {
     $item = EquipmentItem::factory()->create();
-    $this->actingAs(User::factory()->admin()->create());
 
-    $this->deleteJson("/api/v1/dashboard/equipment/{$item->id}")->assertStatus(405);
+    $this->deleteJson(route('api.v1.dashboard.equipment.destroy', $item))->assertUnauthorized();
+    $this->actingAs(User::factory()->create())->deleteJson(route('api.v1.dashboard.equipment.destroy', $item))->assertForbidden();
 
     expect($item->fresh())->not->toBeNull();
+
+    $this->actingAs(User::factory()->operator()->create())
+        ->deleteJson(route('api.v1.dashboard.equipment.destroy', $item))
+        ->assertNoContent();
+
+    expect(EquipmentItem::find($item->id))->toBeNull();
 });

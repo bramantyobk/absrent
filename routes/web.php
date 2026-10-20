@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 
 Route::get('/vehicles', [VehicleCatalogController::class, 'index'])->name('vehicles.index');
-Route::get('/vehicles/{vehicle}', [VehicleCatalogController::class, 'show'])->name('vehicles.show');
+Route::get('/vehicles/{vehicle:slug}', [VehicleCatalogController::class, 'show'])->name('vehicles.show');
 
 Route::middleware(['auth', 'active', 'role:user'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
@@ -113,7 +113,7 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
     Route::put('vehicles/{vehicle}/rental-limit', [VehicleRentalLimitController::class, 'update'])->name('dashboard.vehicles.rental-limit.update');
 
     Route::resource('equipment', EquipmentItemController::class)
-        ->except(['show', 'destroy'])
+        ->except(['show'])
         ->names('dashboard.equipment');
 
     Route::get('users', [UserController::class, 'index'])->name('dashboard.users.index');

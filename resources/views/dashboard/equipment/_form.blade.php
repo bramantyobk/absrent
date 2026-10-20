@@ -63,7 +63,7 @@
                         class="form-check-input" @checked($isActive)>
                     <label for="is_active" class="form-check-label">Aktif</label>
                 </div>
-                <div class="form-text">Perlengkapan tidak dihapus, hanya dinonaktifkan. Item nonaktif tidak muncul pada inspeksi baru, dan riwayat inspeksi tidak berubah.</div>
+                <div class="form-text">Item nonaktif tidak muncul pada inspeksi baru, dan riwayat inspeksi tidak berubah. Perlengkapan yang tidak dipakai lagi dapat dihapus dari daftar.</div>
             </div>
         </div>
     </div>

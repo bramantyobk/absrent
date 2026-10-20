@@ -20,12 +20,44 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 #[Fillable(['brand', 'model', 'plate_number', 'type', 'year', 'color', 'price_per_day', 'price_per_hour', 'photo', 'is_available', 'drive_type', 'energy_capacity', 'description', 'odometer_km', 'max_rental_days'])]
 class Vehicle extends Model
 {
     /** @use HasFactory<VehicleFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::saving(function (Vehicle $vehicle): void {
+            if (blank($vehicle->slug) || $vehicle->isDirty(['brand', 'model'])) {
+                $vehicle->slug = $vehicle->resolveSlug();
+            }
+        });
+    }
+
+    /**
+     * Slug dari merek + model (mis. `toyota-avanza`), dengan akhiran angka bila sudah dipakai unit lain. Slug ikut berubah saat
+     * merek atau model diubah, tetapi slug yang masih sesuai (termasuk akhiran angkanya) dipertahankan.
+     */
+    private function resolveSlug(): string
+    {
+        $base = Str::slug("{$this->brand} {$this->model}") ?: 'kendaraan';
+        $current = (string) $this->getOriginal('slug');
+
+        if ($current === $base || preg_match('/^'.preg_quote($base, '/').'-\d+$/', $current)) {
+            return $current;
+        }
+
+        $slug = $base;
+
+        for ($suffix = 2; static::query()->where('slug', $slug)->whereKeyNot($this->getKey())->exists(); $suffix++) {
+            $slug = "{$base}-{$suffix}";
+        }
+
+        return $slug;
+    }
 
     /**
      * @return array<string, string>
