@@ -1,5 +1,10 @@
 <?php
 
+/*
+| Nilai bawaan aturan sewa. Sebagian besar dapat diganti admin lewat menu Pengaturan Sewa (tabel rental_settings),
+| yang menimpa nilai di sini saat aplikasi mulai (App\Services\RentalSettings).
+*/
+
 return [
 
     /*
@@ -96,10 +101,11 @@ return [
     |
     | Pesanan Pending menahan jadwal kendaraan. Batas ini mencegah satu
     | pelanggan memblokir banyak unit dengan pesanan yang belum dikonfirmasi.
+    | Pesanan Menunggu Verifikasi (sudah dikonfirmasi, belum diverifikasi) ikut dihitung.
     |
     */
 
-    'max_pending_orders' => (int) env('RENTAL_MAX_PENDING_ORDERS', 3),
+    'max_pending_orders' => (int) env('RENTAL_MAX_PENDING_ORDERS', 2),
 
     /*
     |--------------------------------------------------------------------------

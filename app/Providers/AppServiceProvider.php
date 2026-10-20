@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Services\CompanyProfileResolver;
+use App\Services\RentalSettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -20,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(CompanyProfileResolver::class);
+        $this->app->singleton(RentalSettings::class);
     }
 
     /**
@@ -28,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        $this->app->make(RentalSettings::class)->apply();
 
         Gate::define('viewApiDocs', fn (?User $user): bool => (bool) $user?->isAdmin());
 

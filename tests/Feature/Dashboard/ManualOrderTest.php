@@ -125,7 +125,7 @@ it('stores an optional proof privately and rejects a non-image proof', function 
 
 it('is not blocked by the pending order limit', function () {
     $customer = User::factory()->create();
-    Order::factory()->count(3)->for($customer)->create();
+    Order::factory()->count(config('rental.max_pending_orders'))->for($customer)->create();
     $this->actingAs(User::factory()->operator()->create());
 
     $this->post(route('dashboard.orders.manual.store'), manualPayload(Vehicle::factory()->create(), ['customer_id' => $customer->id, 'new_customer' => null]))

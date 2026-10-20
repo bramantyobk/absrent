@@ -12,6 +12,7 @@
         ['label' => 'Pengguna', 'route' => 'dashboard.users.index', 'pattern' => 'dashboard.users.*', 'icon' => 'users'],
         ['label' => 'Data Perusahaan', 'route' => 'dashboard.company.edit', 'pattern' => 'dashboard.company.*', 'icon' => 'building', 'adminOnly' => true],
         ['label' => 'Syarat & Ketentuan', 'route' => 'dashboard.terms.edit', 'pattern' => 'dashboard.terms.*', 'icon' => 'document', 'adminOnly' => true],
+        ['label' => 'Pengaturan Sewa', 'route' => 'dashboard.settings.rental.edit', 'pattern' => 'dashboard.settings.*', 'icon' => 'sliders', 'adminOnly' => true],
     ];
 
     $items = array_values(array_filter($items, fn (array $item): bool => ! ($item['adminOnly'] ?? false) || auth()->user()?->isAdmin()));

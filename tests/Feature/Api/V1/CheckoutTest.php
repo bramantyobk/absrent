@@ -144,7 +144,7 @@ it('rejects rule violations and conflicts with errors keyed by field', function 
 
 it('returns 422 when a customer already has the maximum number of pending orders', function () {
     $customer = User::factory()->create();
-    Order::factory()->count(3)->for($customer)->create();
+    Order::factory()->count(config('rental.max_pending_orders'))->for($customer)->create();
 
     $this->actingAs($customer)
         ->postJson(route('api.v1.checkout.store'), checkoutPayload(Vehicle::factory()->create()))

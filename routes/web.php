@@ -18,6 +18,7 @@ use App\Http\Controllers\Dashboard\OrderCancelController;
 use App\Http\Controllers\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Dashboard\OrderStatusController;
 use App\Http\Controllers\Dashboard\OrderVehicleChangeController;
+use App\Http\Controllers\Dashboard\RentalSettingController;
 use App\Http\Controllers\Dashboard\RevenueController;
 use App\Http\Controllers\Dashboard\TermsController;
 use App\Http\Controllers\Dashboard\TransactionController;
@@ -128,6 +129,8 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('dashboard.company.whatsapp-template.update');
         Route::get('terms', [TermsController::class, 'edit'])->name('dashboard.terms.edit');
         Route::put('terms', [TermsController::class, 'update'])->name('dashboard.terms.update');
+        Route::get('settings/rental', [RentalSettingController::class, 'edit'])->name('dashboard.settings.rental.edit');
+        Route::put('settings/rental', [RentalSettingController::class, 'update'])->name('dashboard.settings.rental.update');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
         Route::patch('users/{user}/phone-review', UserPhoneReviewController::class)->name('dashboard.users.phone-review');

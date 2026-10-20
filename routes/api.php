@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Dashboard\InspectionController;
 use App\Http\Controllers\Api\V1\Dashboard\ManualOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderVehicleChangeController;
+use App\Http\Controllers\Api\V1\Dashboard\RentalSettingController;
 use App\Http\Controllers\Api\V1\Dashboard\RevenueController;
 use App\Http\Controllers\Api\V1\Dashboard\TermsController as DashboardTermsController;
 use App\Http\Controllers\Api\V1\Dashboard\TransactionController;
@@ -94,6 +95,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::patch('inspections/{inspection}', [InspectionController::class, 'update'])->name('inspections.update');
             Route::get('terms', [DashboardTermsController::class, 'show'])->name('terms.show');
             Route::put('terms', [DashboardTermsController::class, 'update'])->name('terms.update');
+            Route::get('settings/rental', [RentalSettingController::class, 'show'])->name('settings.rental.show');
+            Route::put('settings/rental', [RentalSettingController::class, 'update'])->name('settings.rental.update');
             Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('company.whatsapp-template.update');
             Route::apiResource('company/bank-accounts', BankAccountController::class)
                 ->except('destroy')

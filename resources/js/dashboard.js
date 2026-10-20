@@ -94,6 +94,11 @@ if (document.querySelector('[data-template-editor]')) {
     import('./dashboard-template-editor');
 }
 
+// Pengaturan sewa: kembalikan ke bawaan
+if (document.querySelector('[data-rental-settings]')) {
+    import('./dashboard-rental-settings');
+}
+
 // Verifikasi transaksi: tampilkan bukti (Lunas) atau alasan (Gagal) sesuai pilihan
 const verifyChoices = document.querySelectorAll('[data-verify-choice]');
 

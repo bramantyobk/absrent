@@ -320,13 +320,13 @@ it('scopes an idempotency key to its customer', function () {
 
 it('blocks a customer who already has the maximum number of pending orders', function () {
     $customer = User::factory()->create();
-    Order::factory()->count(3)->for($customer)->create();
+    Order::factory()->count(config('rental.max_pending_orders'))->for($customer)->create();
 
     $this->actingAs($customer);
     $this->post(route('checkout.items.store', Vehicle::factory()->create()), rentalPeriod());
     $this->post(route('checkout.store'), ['terms_accepted' => 1])->assertSessionHasErrors('items');
 
-    expect(Order::count())->toBe(3)->and(session('checkout.vehicles'))->toHaveCount(1);
+    expect(Order::count())->toBe(config('rental.max_pending_orders'))->and(session('checkout.vehicles'))->toHaveCount(1);
 });
 
 it('counts only pending orders toward the limit and honours the configured limit', function () {
