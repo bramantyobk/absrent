@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Checkout lewat API: satu periode (waktu mulai + hari) untuk semua kendaraan. Header `Idempotency-Key` mencegah pesanan ganda.
+ * Checkout lewat API: satu periode (waktu mulai + hari) untuk semua kendaraan. Pelanggan wajib menyetujui syarat dan ketentuan (`terms_accepted`). Header `Idempotency-Key` mencegah pesanan ganda.
  */
 class StoreCheckoutRequest extends FormRequest
 {
@@ -23,8 +23,20 @@ class StoreCheckoutRequest extends FormRequest
         return [
             'start_at' => ['required', 'date'],
             'days' => ['required', 'integer', 'min:1', 'max:30'],
+            'terms_accepted' => ['required', 'accepted'],
             'items' => ['required', 'array', 'min:1', 'max:'.config('rental.max_vehicles_per_order')],
             'items.*.vehicle_id' => ['required', 'integer', 'distinct', 'exists:vehicles,id'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'terms_accepted.required' => 'Anda harus menyetujui syarat dan ketentuan.',
+            'terms_accepted.accepted' => 'Anda harus menyetujui syarat dan ketentuan.',
         ];
     }
 

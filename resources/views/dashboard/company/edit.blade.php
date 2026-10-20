@@ -181,7 +181,7 @@
         </div>
     </div>
 
-    <div class="card-custom p-4 mt-4" data-whatsapp-template data-default-template="{{ $defaultWhatsAppTemplate }}" data-sample='@json($whatsAppSample)'>
+    <div class="card-custom p-4 mt-4" data-template-editor data-default-template="{{ $defaultWhatsAppTemplate }}" data-sample='@json($whatsAppSample)'>
         <h2 class="card-heading">Template Pesan WhatsApp</h2>
         <p class="small text-body-secondary">
             Isi pesan konfirmasi pembayaran yang dikirim pelanggan ke operator. Kosongkan untuk memakai template bawaan.

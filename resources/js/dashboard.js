@@ -89,9 +89,9 @@ if (document.querySelector('[data-bank-accounts]')) {
     import('./dashboard-bank-accounts');
 }
 
-// Data perusahaan: template pesan WhatsApp (sisip placeholder, pratinjau, kembali ke bawaan)
-if (document.querySelector('[data-whatsapp-template]')) {
-    import('./dashboard-whatsapp-template');
+// Editor template (pesan WhatsApp dan S&K): sisip placeholder, pratinjau, kembali ke bawaan
+if (document.querySelector('[data-template-editor]')) {
+    import('./dashboard-template-editor');
 }
 
 // Verifikasi transaksi: tampilkan bukti (Lunas) atau alasan (Gagal) sesuai pilihan

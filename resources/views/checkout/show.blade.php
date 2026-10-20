@@ -77,22 +77,23 @@
             </div>
 
             <div class="col-12 col-lg-4">
-                <form method="POST" action="{{ route('checkout.store') }}" class="summary-card" id="checkoutForm">
-                    @csrf
-                    <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}">
-
+                <div class="summary-card" id="checkoutForm">
                     <h2 class="section-title fs-6">Total</h2>
                     <p class="summary-total">Rp{{ number_format($total, 0, ',', '.') }}</p>
                     <p class="small text-body-secondary">
-                        {{ $lines->count() }} kendaraan. Pesanan akan berstatus Pending sampai pembayaran dikonfirmasi.
+                        {{ $lines->count() }} kendaraan. Anda akan diminta menyetujui syarat dan ketentuan sebelum pesanan dibuat.
                     </p>
 
                     @if ($hasInvalidLine)
                         <p class="small text-danger">Hapus item yang tidak valid sebelum membuat pesanan.</p>
                     @endif
 
-                    <button type="submit" class="btn btn-primary w-100 summary-submit" @disabled($hasInvalidLine)>Buat Pesanan</button>
-                </form>
+                    @if ($hasInvalidLine)
+                        <button type="button" class="btn btn-primary w-100 summary-submit" disabled>Buat Pesanan</button>
+                    @else
+                        <a href="{{ route('checkout.terms') }}" class="btn btn-primary w-100 summary-submit">Buat Pesanan</a>
+                    @endif
+                </div>
             </div>
         </div>
     @endif

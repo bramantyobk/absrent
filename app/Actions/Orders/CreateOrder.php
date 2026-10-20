@@ -167,6 +167,22 @@ class CreateOrder
     }
 
     /**
+     * Pesan penolakan bila pelanggan sudah mencapai batas pesanan Pending, atau null bila masih boleh memesan. Dipakai untuk
+     * pengecekan awal sebelum halaman S&K, sedangkan pengecekan yang menentukan ada di `ensureBelowPendingLimit`.
+     */
+    public function pendingLimitMessage(User $customer): ?string
+    {
+        $limit = config('rental.max_pending_orders');
+        $pending = Order::query()->whereBelongsTo($customer)->where('status', OrderStatus::Pending)->count();
+
+        if ($pending < $limit) {
+            return null;
+        }
+
+        return "Anda masih memiliki {$pending} pesanan yang belum dikonfirmasi (maksimal {$limit}). Selesaikan atau batalkan pesanan tersebut sebelum membuat pesanan baru.";
+    }
+
+    /**
      * Pelanggan yang masih memiliki terlalu banyak pesanan Pending tidak dapat membuat pesanan baru. Baris pelanggan
      * dikunci agar dua permintaan bersamaan tidak sama-sama lolos.
      *
@@ -176,13 +192,8 @@ class CreateOrder
     {
         User::query()->whereKey($customer->getKey())->lockForUpdate()->first();
 
-        $limit = config('rental.max_pending_orders');
-        $pending = Order::query()->whereBelongsTo($customer)->where('status', OrderStatus::Pending)->count();
-
-        if ($pending >= $limit) {
-            throw ValidationException::withMessages([
-                'items' => "Anda masih memiliki {$pending} pesanan yang belum dikonfirmasi (maksimal {$limit}). Selesaikan atau batalkan pesanan tersebut sebelum membuat pesanan baru.",
-            ]);
+        if ($message = $this->pendingLimitMessage($customer)) {
+            throw ValidationException::withMessages(['items' => $message]);
         }
     }
 }

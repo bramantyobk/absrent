@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\Dashboard\ManualOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Api\V1\Dashboard\OrderVehicleChangeController;
 use App\Http\Controllers\Api\V1\Dashboard\RevenueController;
+use App\Http\Controllers\Api\V1\Dashboard\TermsController as DashboardTermsController;
 use App\Http\Controllers\Api\V1\Dashboard\TransactionController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleAvailabilityController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Api\V1\OrderCancellationRequestController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OrderPaymentController;
 use App\Http\Controllers\Api\V1\OrderProofController;
+use App\Http\Controllers\Api\V1\TermsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function () {
@@ -48,6 +50,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::get('vehicles/{vehicle}/return-options', [CatalogVehicleController::class, 'returnOptions'])->name('vehicles.return-options');
 
     Route::middleware(['auth:sanctum', 'active', 'role:user'])->group(function () {
+        Route::get('terms', [TermsController::class, 'show'])->name('terms.show');
         Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -89,6 +92,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::get('company', [CompanyProfileController::class, 'show'])->name('company.show');
             Route::put('company', [CompanyProfileController::class, 'update'])->name('company.update');
             Route::patch('inspections/{inspection}', [InspectionController::class, 'update'])->name('inspections.update');
+            Route::get('terms', [DashboardTermsController::class, 'show'])->name('terms.show');
+            Route::put('terms', [DashboardTermsController::class, 'update'])->name('terms.update');
             Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('company.whatsapp-template.update');
             Route::apiResource('company/bank-accounts', BankAccountController::class)
                 ->except('destroy')

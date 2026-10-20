@@ -1,6 +1,6 @@
-// Data perusahaan: template pesan WhatsApp (sisip placeholder, pratinjau dengan data contoh, kembali ke bawaan)
+// Editor template (pesan WhatsApp dan S&K): sisip placeholder, pratinjau dengan data contoh, kembali ke bawaan
 
-const card = document.querySelector('[data-whatsapp-template]');
+const card = document.querySelector('[data-template-editor]');
 const input = card.querySelector('[data-template-input]');
 const preview = card.querySelector('[data-template-preview]');
 const sample = JSON.parse(card.dataset.sample);

@@ -7,7 +7,6 @@ use App\Services\CheckoutCart;
 use App\Services\RentalQuote;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
@@ -28,12 +27,16 @@ class CheckoutController extends Controller
             'canAddMore' => $cart->canAddMore(),
             'canReschedule' => $cart->canReschedule(),
             'maxVehicles' => config('rental.max_vehicles_per_order'),
-            'idempotencyKey' => (string) Str::uuid(),
         ]);
     }
 
     public function store(Request $request, CheckoutCart $cart, CreateOrder $createOrder): RedirectResponse
     {
+        $request->validate(
+            ['terms_accepted' => ['accepted']],
+            ['terms_accepted.accepted' => 'Anda harus menyetujui syarat dan ketentuan.'],
+        );
+
         $period = $cart->period();
 
         if ($cart->isEmpty() || $period === null) {

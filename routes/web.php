@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CheckoutItemController;
 use App\Http\Controllers\CheckoutRescheduleController;
+use App\Http\Controllers\CheckoutTermsController;
 use App\Http\Controllers\Dashboard\BankAccountController;
 use App\Http\Controllers\Dashboard\CancellationRequestController;
 use App\Http\Controllers\Dashboard\CompanyProfileController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Dashboard\OrderController as DashboardOrderController;
 use App\Http\Controllers\Dashboard\OrderStatusController;
 use App\Http\Controllers\Dashboard\OrderVehicleChangeController;
 use App\Http\Controllers\Dashboard\RevenueController;
+use App\Http\Controllers\Dashboard\TermsController;
 use App\Http\Controllers\Dashboard\TransactionController;
 use App\Http\Controllers\Dashboard\TransactionProofController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -47,6 +49,7 @@ Route::get('/vehicles/{vehicle}', [VehicleCatalogController::class, 'show'])->na
 
 Route::middleware(['auth', 'active', 'role:user'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::get('/checkout/terms', [CheckoutTermsController::class, 'show'])->name('checkout.terms');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::post('/checkout/items/{vehicle}', [CheckoutItemController::class, 'store'])->name('checkout.items.store');
     Route::post('/checkout/reschedule', [CheckoutRescheduleController::class, 'store'])->name('checkout.reschedule');
@@ -123,6 +126,8 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
             ->names('dashboard.company.bank-accounts');
         Route::patch('inspections/{inspection}', [InspectionController::class, 'update'])->name('dashboard.inspections.update');
         Route::put('company/whatsapp-template', [WhatsAppTemplateController::class, 'update'])->name('dashboard.company.whatsapp-template.update');
+        Route::get('terms', [TermsController::class, 'edit'])->name('dashboard.terms.edit');
+        Route::put('terms', [TermsController::class, 'update'])->name('dashboard.terms.update');
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
         Route::patch('users/{user}/phone-review', UserPhoneReviewController::class)->name('dashboard.users.phone-review');

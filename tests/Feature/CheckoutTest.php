@@ -241,7 +241,7 @@ it('creates a pending order with items on one period and a pending transaction, 
     $this->post(route('checkout.items.store', $genio), rentalPeriod(['days' => 2]));
     $this->post(route('checkout.items.store', $avanza), rentalPeriod(['days' => 2]));
 
-    $this->post(route('checkout.store'))->assertRedirect()->assertSessionHasNoErrors();
+    $this->post(route('checkout.store'), ['terms_accepted' => 1])->assertRedirect()->assertSessionHasNoErrors();
 
     $order = Order::query()->with(['items', 'transaction'])->sole();
 
@@ -262,7 +262,7 @@ it('creates a pending order with items on one period and a pending transaction, 
 
 it('rejects an empty checkout', function () {
     $this->actingAs(User::factory()->create())
-        ->post(route('checkout.store'))
+        ->post(route('checkout.store'), ['terms_accepted' => 1])
         ->assertRedirect(route('checkout.show'))
         ->assertSessionHas('error');
 
@@ -277,7 +277,7 @@ it('rejects the order if the vehicle was taken after it was added, and keeps the
     holdVehicle($vehicle, OrderStatus::Booking, '2026-10-14 08:00', '2026-10-15 08:00');
     $before = Order::count();
 
-    $this->post(route('checkout.store'))->assertSessionHasErrors('items.0.vehicle_id');
+    $this->post(route('checkout.store'), ['terms_accepted' => 1])->assertSessionHasErrors('items.0.vehicle_id');
 
     expect(Order::count())->toBe($before)->and(session('checkout.vehicles'))->toHaveCount(1);
     $this->get(route('checkout.show'))->assertSee('Kendaraan tidak tersedia pada rentang waktu ini.');
@@ -324,7 +324,7 @@ it('blocks a customer who already has the maximum number of pending orders', fun
 
     $this->actingAs($customer);
     $this->post(route('checkout.items.store', Vehicle::factory()->create()), rentalPeriod());
-    $this->post(route('checkout.store'))->assertSessionHasErrors('items');
+    $this->post(route('checkout.store'), ['terms_accepted' => 1])->assertSessionHasErrors('items');
 
     expect(Order::count())->toBe(3)->and(session('checkout.vehicles'))->toHaveCount(1);
 });

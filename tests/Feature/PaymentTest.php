@@ -47,7 +47,7 @@ it('sends the customer to the payment page after creating an order', function ()
     $this->actingAs(User::factory()->create());
     $this->post(route('checkout.items.store', $vehicle), ['start_at' => '2026-10-14T09:00', 'days' => 2]);
 
-    $this->post(route('checkout.store'))->assertRedirect(route('orders.payment', Order::sole()));
+    $this->post(route('checkout.store'), ['terms_accepted' => 1])->assertRedirect(route('orders.payment', Order::sole()));
 });
 
 it('shows the total and only active bank accounts in order', function () {

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'address', 'support_whatsapp', 'operating_hours', 'whatsapp_confirmation_template'])]
+#[Fillable(['name', 'address', 'support_whatsapp', 'operating_hours', 'whatsapp_confirmation_template', 'terms_template'])]
 class CompanyProfile extends Model
 {
     /** @use HasFactory<CompanyProfileFactory> */

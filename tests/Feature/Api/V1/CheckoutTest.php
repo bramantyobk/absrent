@@ -18,6 +18,7 @@ function checkoutPayload(Vehicle|array $vehicles, array $overrides = []): array
     return $overrides + [
         'start_at' => '2026-10-14T09:00:00+07:00',
         'days' => 2,
+        'terms_accepted' => true,
         'items' => array_map(fn (Vehicle $vehicle): array => ['vehicle_id' => $vehicle->id], $vehicles),
     ];
 }
