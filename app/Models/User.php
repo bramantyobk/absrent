@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use App\Services\ProfilePhotoStorage;
 use App\UserRole;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_active', 'is_on_duty', 'last_assigned_at', 'phone_flagged_at'])]
+#[Fillable(['name', 'email', 'phone', 'photo_path', 'password', 'role', 'is_active', 'is_on_duty', 'last_assigned_at', 'phone_flagged_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -36,6 +39,24 @@ class User extends Authenticatable
             'last_assigned_at' => 'datetime',
             'phone_flagged_at' => 'datetime',
         ];
+    }
+
+    /**
+     * URL foto profil, atau null bila belum ada (tampilan memakai inisial).
+     */
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->photo_path
+            ? Storage::disk(ProfilePhotoStorage::DISK)->url($this->photo_path)
+            : null);
+    }
+
+    /**
+     * Inisial dari maksimal dua kata pertama nama, untuk avatar tanpa foto.
+     */
+    public function initials(): string
+    {
+        return mb_strtoupper(collect(preg_split('/\s+/', trim($this->name)))->filter()->take(2)->map(fn (string $word): string => mb_substr($word, 0, 1))->implode(''));
     }
 
     public function isAdmin(): bool

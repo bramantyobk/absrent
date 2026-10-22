@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Services\ProfilePhotoStorage;
 use App\UserRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -86,7 +87,7 @@ class UserController extends Controller
             ->with('status', 'Pengguna berhasil diperbarui.');
     }
 
-    public function destroy(User $user): RedirectResponse
+    public function destroy(User $user, ProfilePhotoStorage $photos): RedirectResponse
     {
         Gate::authorize('delete', $user);
 
@@ -95,6 +96,7 @@ class UserController extends Controller
         }
 
         $user->delete();
+        $photos->delete($user->photo_path);
 
         return redirect()
             ->route('dashboard.users.index')

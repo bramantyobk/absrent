@@ -30,7 +30,7 @@
                 </select>
             </div>
             <div class="col-6 col-lg-2">
-                <label for="start_at" class="form-label small mb-1">Mulai ({{ config('rental.timezone_label') }})</label>
+                <label for="start_at" class="form-label small mb-1">Mulai Sewa ({{ config('rental.timezone_label') }})</label>
                 <input type="datetime-local" id="start_at" name="start_at" value="{{ $filters['start_at'] ?? '' }}"
                     class="form-control @error('start_at') is-invalid @enderror">
             </div>

@@ -40,6 +40,9 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPaymentController;
 use App\Http\Controllers\OrderProofController;
 use App\Http\Controllers\OrderWhatsAppController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfilePasswordController;
+use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\VehicleCatalogController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +58,12 @@ Route::middleware(['auth', 'active', 'role:user'])->group(function () {
     Route::post('/checkout/items/{vehicle}', [CheckoutItemController::class, 'store'])->name('checkout.items.store');
     Route::post('/checkout/reschedule', [CheckoutRescheduleController::class, 'store'])->name('checkout.reschedule');
     Route::delete('/checkout/items/{index}', [CheckoutItemController::class, 'destroy'])->whereNumber('index')->name('checkout.items.destroy');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [ProfilePhotoController::class, 'store'])->name('profile.photo.store');
+    Route::delete('/profile/photo', [ProfilePhotoController::class, 'destroy'])->name('profile.photo.destroy');
+    Route::put('/profile/password', [ProfilePasswordController::class, 'update'])->name('profile.password.update');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');

@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\V1\OrderCancellationRequestController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OrderPaymentController;
 use App\Http\Controllers\Api\V1\OrderProofController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\TermsController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +52,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::get('vehicles/{vehicle:slug}/return-options', [CatalogVehicleController::class, 'returnOptions'])->name('vehicles.return-options');
 
     Route::middleware(['auth:sanctum', 'active', 'role:user'])->group(function () {
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+        Route::delete('profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
         Route::get('terms', [TermsController::class, 'show'])->name('terms.show');
         Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');

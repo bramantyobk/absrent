@@ -15,7 +15,7 @@
         </div>
     @endif
 
-    <div class="summary-card mb-3">
+    <div class="booking-card mb-3">
         @foreach ($blocks as $block)
             @if ($block['type'] === 'heading')
                 <h2 class="section-title fs-6 mt-3">{{ $block['text'] }}</h2>

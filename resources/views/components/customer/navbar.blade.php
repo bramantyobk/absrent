@@ -33,11 +33,11 @@
                     @endif
                 </ul>
 
-                <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0">
+                <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0 py-">
                     @auth
                         @if ($isCustomer)
-                            <a href="{{ route('checkout.show') }}" class="btn btn-outline-primary position-relative">
-                                Pesanan
+                            <a href="{{ route('checkout.show') }}" class="btn btn-outline-primary position-relative py-2">
+                                Keranjang
                                 @if ($cartCount > 0)
                                     <span class="badge text-bg-primary ms-1">{{ $cartCount }}</span>
                                 @endif
@@ -45,11 +45,39 @@
                         @else
                             <a href="{{ route('dashboard') }}" class="btn btn-primary">Dashboard</a>
                         @endif
-                        <span class="small text-body-secondary px-lg-2">{{ auth()->user()->name }}</span>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-secondary w-100">Keluar</button>
-                        </form>
+                        @if ($isCustomer)
+                            <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary d-flex d-lg-none align-items-center gap-2 justify-content-center">
+                                <x-customer.avatar :user="auth()->user()" />
+                                <span class="text-truncate">{{ auth()->user()->name }}</span>
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" class="d-lg-none">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary w-100">Keluar</button>
+                            </form>
+                            <div class="dropdown d-none d-lg-block">
+                                <button class="btn btn-outline-secondary d-flex align-items-center gap-2 w-100 justify-content-center" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <x-customer.avatar :user="auth()->user()" />
+                                    <span class="text-truncate" style="max-width: 10rem;">{{ auth()->user()->name }}</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profil saya</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item">Keluar</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        @else
+                            <span class="small text-body-secondary px-lg-2">{{ auth()->user()->name }}</span>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary w-100">Keluar</button>
+                            </form>
+                        @endif
                     @else
                         <a href="{{ route('login') }}" class="btn btn-outline-primary">Masuk</a>
                         <a href="{{ route('register') }}" class="btn btn-primary">Daftar</a>

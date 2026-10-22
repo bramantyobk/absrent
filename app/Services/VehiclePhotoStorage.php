@@ -10,16 +10,17 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Menyimpan foto kendaraan di disk publik. Gambar diperkecil dan dikompres (JPEG) agar hemat disk shared hosting.
+ * Foto profil memakai logika yang sama dengan direktori dan lebar maksimal sendiri (`ProfilePhotoStorage`).
  */
 class VehiclePhotoStorage
 {
     public const DISK = 'public';
 
-    private const DIRECTORY = 'vehicles';
+    protected const DIRECTORY = 'vehicles';
 
-    private const MAX_WIDTH = 1200;
+    protected const MAX_WIDTH = 1200;
 
-    private const QUALITY = 80;
+    protected const QUALITY = 80;
 
     /**
      * @return string path relatif di disk publik
@@ -38,7 +39,7 @@ class VehiclePhotoStorage
 
         $width = imagesx($source);
         $height = imagesy($source);
-        $targetWidth = min($width, self::MAX_WIDTH);
+        $targetWidth = min($width, static::MAX_WIDTH);
         $targetHeight = (int) round($height * $targetWidth / $width);
 
         // Kanvas putih agar PNG/WebP transparan tidak menjadi hitam saat jadi JPEG
@@ -47,10 +48,10 @@ class VehiclePhotoStorage
         imagecopyresampled($canvas, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
 
         ob_start();
-        imagejpeg($canvas, null, self::QUALITY);
+        imagejpeg($canvas, null, static::QUALITY);
         $contents = (string) ob_get_clean();
 
-        $path = self::DIRECTORY.'/'.str()->uuid().'.jpg';
+        $path = static::DIRECTORY.'/'.str()->uuid().'.jpg';
         $this->disk()->put($path, $contents);
 
         return $path;

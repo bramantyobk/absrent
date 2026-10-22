@@ -357,3 +357,27 @@
 .summary-submit {
     min-height: 48px;
 }
+
+// Avatar pelanggan (foto profil atau inisial)
+.avatar {
+    --avatar-size: 36px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: calc(var(--avatar-size) * 0.4);
+    object-fit: cover;
+    overflow: hidden;
+    border: 1px solid var(--divider);
+}
+
+.avatar-lg {
+    --avatar-size: 96px;
+}
