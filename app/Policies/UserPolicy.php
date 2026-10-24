@@ -31,4 +31,12 @@ class UserPolicy
     {
         return $actor->isAdmin() && ! $actor->is($target);
     }
+
+    /**
+     * Tautan reset password hanya dibuat admin untuk pelanggan. Password staf direset lewat menu Pengguna (ubah).
+     */
+    public function resetPassword(User $actor, User $target): bool
+    {
+        return $actor->isAdmin() && ! $target->isStaff();
+    }
 }

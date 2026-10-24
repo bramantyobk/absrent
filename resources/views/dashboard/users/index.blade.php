@@ -77,6 +77,11 @@
                                 @if ($user->phone)
                                     <a href="https://wa.me/{{ $user->phone }}" target="_blank" rel="noopener" class="small">{{ $user->phone }}</a>
                                 @endif
+                                @if ($user->password_reset_requested_at)
+                                    <div>
+                                        <span class="status-badge status-pending" title="Diajukan {{ $user->password_reset_requested_at->format('d/m/Y H:i') }}">Minta reset password</span>
+                                    </div>
+                                @endif
                                 @if ($user->phone_flagged_at)
                                     <div>
                                         <span class="status-badge status-progress" title="Nomor ini dipakai pelanggan baru. Pemiliknya mungkin sudah berganti nomor.">Nomor perlu ditinjau</span>
@@ -113,7 +118,7 @@
                                 @endif
                             </td>
                             @if ($canManage)
-                                <td class="text-end text-nowrap">
+                                <td class="text-end">
                                     @if ($user->phone_flagged_at)
                                         <form method="POST" action="{{ route('dashboard.users.phone-review', $user) }}" class="d-inline">
                                             @csrf
@@ -121,6 +126,12 @@
                                             <button type="submit" class="btn btn-sm btn-outline-secondary">Sudah ditinjau</button>
                                         </form>
                                     @endif
+                                    @can('resetPassword', $user)
+                                        <form method="POST" action="{{ route('dashboard.users.password-reset-link', $user) }}" target="_blank" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm {{ $user->password_reset_requested_at ? 'btn-primary' : 'btn-outline-secondary' }}">Link reset WA</button>
+                                        </form>
+                                    @endcan
                                     <a href="{{ route('dashboard.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Ubah</a>
 
                                     @if ($isSelf)

@@ -3,6 +3,13 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    @if ($passwordResetRequests > 0)
+        <div class="alert alert-warning d-flex flex-wrap gap-3 justify-content-between align-items-center" role="alert">
+            <strong>{{ $passwordResetRequests }} pengajuan lupa password menunggu tautan reset.</strong>
+            <a href="{{ route('dashboard.users.index', ['reset' => 'requested']) }}" class="btn btn-sm btn-primary">Kirim tautan</a>
+        </div>
+    @endif
+
     @if ($verification['waiting'] > 0 || $verification['pendingCancellations'] > 0 || $verification['overdueRentals'] > 0)
         <div class="alert {{ $verification['nearExpiry'] > 0 ? 'alert-danger' : 'alert-warning' }} d-flex flex-wrap gap-3 justify-content-between align-items-center" role="alert">
             <div>

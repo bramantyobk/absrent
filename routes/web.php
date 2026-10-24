@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CheckoutItemController;
 use App\Http\Controllers\CheckoutRescheduleController;
@@ -25,6 +27,7 @@ use App\Http\Controllers\Dashboard\TransactionController;
 use App\Http\Controllers\Dashboard\TransactionProofController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\UserDutyStatusController;
+use App\Http\Controllers\Dashboard\UserPasswordResetLinkController;
 use App\Http\Controllers\Dashboard\UserPhoneReviewController;
 use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\Dashboard\VehicleOdometerController;
@@ -80,6 +83,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1');
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store']);
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
 });
 
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
@@ -143,5 +150,6 @@ Route::prefix('dashboard')->middleware(['auth', 'role:admin,operator'])->group(f
         Route::resource('users', UserController::class)->except(['index', 'show'])->names('dashboard.users');
         Route::patch('users/{user}/duty-status', UserDutyStatusController::class)->name('dashboard.users.duty-status');
         Route::patch('users/{user}/phone-review', UserPhoneReviewController::class)->name('dashboard.users.phone-review');
+        Route::post('users/{user}/password-reset-link', [UserPasswordResetLinkController::class, 'store'])->name('dashboard.users.password-reset-link');
     });
 });

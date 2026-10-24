@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'photo_path', 'password', 'role', 'is_active', 'is_on_duty', 'last_assigned_at', 'phone_flagged_at'])]
+#[Fillable(['name', 'email', 'phone', 'photo_path', 'password', 'role', 'is_active', 'is_on_duty', 'last_assigned_at', 'phone_flagged_at', 'password_reset_requested_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -38,6 +38,7 @@ class User extends Authenticatable
             'is_on_duty' => 'boolean',
             'last_assigned_at' => 'datetime',
             'phone_flagged_at' => 'datetime',
+            'password_reset_requested_at' => 'datetime',
         ];
     }
 

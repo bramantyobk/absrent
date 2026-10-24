@@ -33,6 +33,8 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100">Masuk</button>
+
+        <p class="text-center mt-3 mb-0"><a href="{{ route('password.request') }}">Lupa password?</a></p>
     </form>
 
     <p class="text-center text-body-secondary mt-4 mb-0">

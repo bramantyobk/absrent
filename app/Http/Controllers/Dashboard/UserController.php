@@ -24,6 +24,7 @@ class UserController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'role' => ['nullable', Rule::enum(UserRole::class)],
             'status' => ['nullable', Rule::in(['active', 'inactive'])],
+            'reset' => ['nullable', Rule::in(['requested'])],
         ]);
 
         $users = User::query()
@@ -35,6 +36,7 @@ class UserController extends Controller
             ))
             ->when($filters['role'] ?? null, fn ($query, string $role) => $query->where('role', $role))
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('is_active', $status === 'active'))
+            ->when($filters['reset'] ?? null, fn ($query) => $query->whereNotNull('password_reset_requested_at'))
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();

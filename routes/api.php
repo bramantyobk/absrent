@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
+use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\CatalogVehicleController;
 use App\Http\Controllers\Api\V1\CheckoutController;
 use App\Http\Controllers\Api\V1\Dashboard\BankAccountController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Api\V1\Dashboard\RentalSettingController;
 use App\Http\Controllers\Api\V1\Dashboard\RevenueController;
 use App\Http\Controllers\Api\V1\Dashboard\TermsController as DashboardTermsController;
 use App\Http\Controllers\Api\V1\Dashboard\TransactionController;
+use App\Http\Controllers\Api\V1\Dashboard\UserPasswordResetLinkController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleAvailabilityController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleController;
 use App\Http\Controllers\Api\V1\Dashboard\VehicleOdometerController;
@@ -38,6 +41,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::middleware('throttle:api-auth')->group(function () {
             Route::post('register', [RegisterController::class, 'store'])->name('register');
             Route::post('login', [LoginController::class, 'store'])->name('login');
+            Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->name('forgot-password');
+            Route::post('reset-password', [ResetPasswordController::class, 'store'])->name('reset-password');
         });
 
         Route::middleware(['auth:sanctum', 'active'])->group(function () {
@@ -98,6 +103,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::get('company', [CompanyProfileController::class, 'show'])->name('company.show');
             Route::put('company', [CompanyProfileController::class, 'update'])->name('company.update');
             Route::patch('inspections/{inspection}', [InspectionController::class, 'update'])->name('inspections.update');
+            Route::post('users/{user}/password-reset-link', [UserPasswordResetLinkController::class, 'store'])->name('users.password-reset-link');
             Route::get('terms', [DashboardTermsController::class, 'show'])->name('terms.show');
             Route::put('terms', [DashboardTermsController::class, 'update'])->name('terms.update');
             Route::get('settings/rental', [RentalSettingController::class, 'show'])->name('settings.rental.show');
