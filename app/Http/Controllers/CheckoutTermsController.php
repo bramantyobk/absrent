@@ -46,6 +46,11 @@ class CheckoutTermsController extends Controller
 
         return view('checkout.terms', [
             'blocks' => $terms['blocks'],
+            'lines' => $lines,
+            'start' => $first['start_at'],
+            'end' => $first['end_at'],
+            'days' => $first['days'],
+            'total' => $lines->sum('subtotal'),
             'idempotencyKey' => $request->old('idempotency_key', (string) Str::uuid()),
         ]);
     }

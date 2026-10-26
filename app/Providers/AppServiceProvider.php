@@ -8,6 +8,7 @@ use App\Services\RentalSettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +31,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        // Contoh: "Senin, 27 Oktober 2026"
+        Carbon::macro('toDateIndonesian', function (): string {
+            /** @var Carbon $this */
+            return $this->copy()->locale('id')->translatedFormat('l, j F Y');
+        });
+
+        // Contoh: "Senin, 27 Oktober 2026 pukul 09:00 WIB"
+        Carbon::macro('toLongIndonesian', function (bool $withZone = true): string {
+            /** @var Carbon $this */
+            $text = $this->toDateIndonesian().' pukul '.$this->format('H:i');
+
+            return $withZone ? $text.' '.config('rental.timezone_label') : $text;
+        });
 
         $this->app->make(RentalSettings::class)->apply();
 

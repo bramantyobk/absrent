@@ -64,6 +64,19 @@ it('shows the total and only active bank accounts in order', function () {
         ->assertDontSee('2222222222');
 });
 
+it('offers a copy button that carries the account number without spaces, but none for the amount', function () {
+    BankAccount::factory()->create(['bank_name' => 'BCA', 'account_number' => '1111 2222 33']);
+    $customer = User::factory()->create();
+    $order = payableOrder($customer);
+
+    $this->actingAs($customer)
+        ->get(route('orders.payment', $order))
+        ->assertOk()
+        ->assertSee('data-copy="1111222233"', false)
+        ->assertDontSee('Salin jumlah transfer')
+        ->assertDontSee('data-copy="'.(int) $order->total_price.'"', false);
+});
+
 it('warns and blocks confirmation when no bank account is active', function () {
     $customer = User::factory()->create();
 
@@ -262,6 +275,6 @@ it('shows pay and cancel actions on a pending order and the WhatsApp action whil
     $pending = payableOrder($customer);
     $verifying = payableOrder($customer, ['code' => 'ABS-PAY00006'], TransactionStatus::Verifying);
 
-    $this->actingAs($customer)->get(route('orders.show', $pending))->assertSee('Bayar sekarang')->assertSee('Batalkan pesanan')->assertDontSee('Kirim pesan konfirmasi');
-    $this->actingAs($customer)->get(route('orders.show', $verifying))->assertDontSee('Bayar sekarang')->assertSee('Kirim pesan konfirmasi ke operator');
+    $this->actingAs($customer)->get(route('orders.show', $pending))->assertSee('Bayar sekarang')->assertSee('Batalkan pesanan')->assertDontSee('Konfirmasi Pembayaran');
+    $this->actingAs($customer)->get(route('orders.show', $verifying))->assertDontSee('Bayar sekarang')->assertSee('Konfirmasi Pembayaran')->assertSee('Menunggu verifikasi operator.');
 });

@@ -9,24 +9,49 @@
         @forelse ($orders as $order)
             @php($first = $order->items->first())
             <a href="{{ route('orders.show', $order) }}" class="order-card">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                @if ($first)
+                    <img src="{{ $first->vehicle->photo_url }}" alt="" class="order-card-photo" loading="lazy">
+                @endif
+                <div class="order-card-main">
                     <span class="fw-semibold">{{ $order->code }}</span>
-                    <span class="d-flex gap-1">
-                        <x-status-badge :status="$order->status" />
-                        @if ($order->transaction)
-                            <x-status-badge :status="$order->transaction->status" />
+                    <p class="mb-2">
+                        {{ $first?->vehicle->brand }} {{ $first?->vehicle->model }}
+                        @if ($order->items->count() > 1)
+                            <span class="text-body-secondary">(+{{ $order->items->count() - 1 }} lainnya)</span>
                         @endif
-                    </span>
-                </div>
-                <p class="mb-1">
-                    {{ $first?->vehicle->brand }} {{ $first?->vehicle->model }}
-                    @if ($order->items->count() > 1)
-                        <span class="text-body-secondary">(+{{ $order->items->count() - 1 }} lainnya)</span>
+                        @if ($first)
+                            <span class="vehicle-chip ms-1">{{ $first->days }} hari</span>
+                        @endif
+                    </p>
+                    @if ($first)
+                        <dl class="order-meta order-meta-split small mb-2">
+                            <div>
+                                <dt>Mulai</dt>
+                                <dd>{{ $first->start_at->toLongIndonesian() }}</dd>
+                            </div>
+                            <div>
+                                <dt>Kembali</dt>
+                                <dd>{{ $first->end_at->toLongIndonesian() }}</dd>
+                            </div>
+                        </dl>
                     @endif
-                </p>
-                <div class="d-flex flex-wrap justify-content-between gap-2 small text-body-secondary">
-                    <span>{{ $order->created_at->format('d/m/Y H:i') }}</span>
-                    <strong class="text-body">{{ $order->formattedTotalPrice() }}</strong>
+                    <p class="small text-body-secondary mb-0">Dibuat {{ $order->created_at->toLongIndonesian() }}</p>
+                </div>
+                <div class="order-card-side">
+                    <strong class="order-card-total">{{ $order->formattedTotalPrice() }}</strong>
+                    <div class="order-status">
+                        <span class="order-status-item">
+                            <span class="order-status-label">Status pesanan</span>
+                            <x-status-badge :status="$order->status" />
+                        </span>
+                        @if ($order->transaction)
+                            <span class="order-status-item">
+                                <span class="order-status-label">Pembayaran</span>
+                                <x-status-badge :status="$order->transaction->status" />
+                            </span>
+                        @endif
+                    </div>
+                    <span class="order-card-link">Lihat detail <i class="bi bi-chevron-right" aria-hidden="true"></i></span>
                 </div>
             </a>
         @empty

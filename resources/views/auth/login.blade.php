@@ -32,7 +32,7 @@
             <label for="remember" class="form-check-label">Ingat saya</label>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Masuk</button>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>Masuk</button>
 
         <p class="text-center mt-3 mb-0"><a href="{{ route('password.request') }}">Lupa password?</a></p>
     </form>

@@ -80,12 +80,8 @@
                             @enderror
                         @else
                             <div class="mb-3">
-                                <label for="start_at" class="form-label">Mulai ({{ $timezoneLabel }})</label>
-                                <input type="datetime-local" id="start_at" name="start_at" value="{{ $startAt }}"
-                                    min="{{ now()->format('Y-m-d\TH:i') }}" class="form-control @error('start_at') is-invalid @enderror" required data-quote-start>
-                                @error('start_at')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <x-datetime-field id="start_at" label="Mulai" :value="$startAt" :timezone="$timezoneLabel"
+                                    :min-date="now()->format('Y-m-d')" required data-quote-start />
                             </div>
                             <div class="mb-3">
                                 <label for="days" class="form-label">Durasi dan waktu pengembalian</label>
@@ -117,7 +113,7 @@
                 @endif
 
                 @if ($supportUrl)
-                    <a href="{{ $supportUrl }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 mt-3">Tanya via WhatsApp</a>
+                    <a href="{{ $supportUrl }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 mt-3"><i class="bi bi-whatsapp me-2" aria-hidden="true"></i>Tanya via WhatsApp</a>
                 @endif
             </div>
         </div>

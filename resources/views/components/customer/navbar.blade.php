@@ -7,7 +7,7 @@
 
 <nav class="navbar navbar-expand-lg customer-navbar sticky-top">
     <div class="container">
-        <x-brand :size="36" />
+        <x-brand :size="36" class="me-lg-5" />
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#customerMenu"
             aria-controls="customerMenu" aria-label="Buka menu">
@@ -33,11 +33,11 @@
                     @endif
                 </ul>
 
-                <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0 py-">
+                <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0">
                     @auth
                         @if ($isCustomer)
-                            <a href="{{ route('checkout.show') }}" class="btn btn-outline-primary position-relative py-2">
-                                Keranjang
+                            <a href="{{ route('checkout.show') }}" class="btn btn-outline-primary customer-nav-btn position-relative">
+                                <i class="bi bi-cart3 me-2" aria-hidden="true"></i>Keranjang
                                 @if ($cartCount > 0)
                                     <span class="badge text-bg-primary ms-1">{{ $cartCount }}</span>
                                 @endif
@@ -46,7 +46,7 @@
                             <a href="{{ route('dashboard') }}" class="btn btn-primary">Dashboard</a>
                         @endif
                         @if ($isCustomer)
-                            <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary d-flex d-lg-none align-items-center gap-2 justify-content-center">
+                            <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary customer-nav-btn d-flex d-lg-none align-items-center gap-2 justify-content-center">
                                 <x-customer.avatar :user="auth()->user()" />
                                 <span class="text-truncate">{{ auth()->user()->name }}</span>
                             </a>
@@ -55,10 +55,10 @@
                                 <button type="submit" class="btn btn-outline-secondary w-100">Keluar</button>
                             </form>
                             <div class="dropdown d-none d-lg-block">
-                                <button class="btn btn-outline-secondary d-flex align-items-center gap-2 w-100 justify-content-center" type="button"
+                                <button class="btn btn-outline-secondary customer-nav-btn d-flex align-items-center gap-2 justify-content-center" type="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
                                     <x-customer.avatar :user="auth()->user()" />
-                                    <span class="text-truncate" style="max-width: 10rem;">{{ auth()->user()->name }}</span>
+                                    <span class="text-truncate">{{ auth()->user()->name }}</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profil saya</a></li>
@@ -79,8 +79,8 @@
                             </form>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-primary">Masuk</a>
-                        <a href="{{ route('register') }}" class="btn btn-primary">Daftar</a>
+                        <a href="{{ route('login') }}" class="btn btn-outline-primary"><i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>Masuk</a>
+                        <a href="{{ route('register') }}" class="btn btn-primary"><i class="bi bi-person-plus me-2" aria-hidden="true"></i>Daftar</a>
                     @endauth
                 </div>
             </div>

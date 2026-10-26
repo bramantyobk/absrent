@@ -6,7 +6,7 @@
     </a>
     <div class="vehicle-card-body">
         <div class="d-flex flex-wrap gap-1 mb-2">
-            <span class="vehicle-chip">{{ $vehicle->type->label() }}</span>
+            <span class="vehicle-chip"><i class="bi bi-{{ $vehicle->type->value === 'car' ? 'car-front' : 'scooter' }} me-1" aria-hidden="true"></i>{{ $vehicle->type->label() }}</span>
             @if ($vehicle->drive_type)
                 <span class="vehicle-chip">{{ $vehicle->drive_type->label() }}</span>
             @endif

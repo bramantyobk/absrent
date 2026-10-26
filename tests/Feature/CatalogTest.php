@@ -232,3 +232,18 @@ it('shows the energy capacity as a number in the catalog api', function () {
 
     $this->getJson(route('api.v1.vehicles.show', $vehicle))->assertJsonPath('data.energy_capacity', 4.2);
 });
+
+it('renders the start time as separate date and 24-hour time fields with a combined hidden value', function () {
+    $this->travelTo('2026-10-14 10:00:00');
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('data-dt-date', false)
+        ->assertSee('<option value="09:00" selected>09:00</option>', false)
+        ->assertSee('<input type="hidden" name="start_at" value="2026-10-15T09:00" data-dt-value', false);
+
+    $this->get(route('vehicles.index', ['start_at' => '2026-10-20T14:30', 'days' => 2]))
+        ->assertOk()
+        ->assertSee('value="2026-10-20"', false)
+        ->assertSee('<option value="14:30" selected>14:30</option>', false);
+});

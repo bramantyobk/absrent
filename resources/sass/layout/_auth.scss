@@ -1,0 +1,178 @@
+// Halaman masuk, daftar, dan reset password (layouts/guest): form di kiri, slideshow foto di kanan (30:70) pada desktop
+
+.auth-body {
+    background-color: #fff;
+}
+
+.auth-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100vh;
+
+    @include media-breakpoint-up(lg) {
+        // Kolom form 30% tetapi tidak kurang dari 26rem agar isian tidak sempit
+        grid-template-columns: minmax(26rem, 30%) minmax(0, 1fr);
+    }
+}
+
+.auth-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem 1.25rem;
+
+    @include media-breakpoint-up(md) {
+        padding: 2.5rem 2rem;
+    }
+}
+
+.auth-panel-inner {
+    width: 100%;
+    max-width: 24rem;
+    margin: auto;
+    padding-block: 1.5rem;
+
+    h1 {
+        font-size: 1.75rem;
+        letter-spacing: -0.5px;
+    }
+
+    .form-control {
+        padding-block: 0.6rem;
+        background-color: #fff;
+        border-color: #cfd8e8;
+
+        &:focus {
+            border-color: var(--primary);
+        }
+    }
+
+    .btn-primary {
+        padding-block: 0.65rem;
+        font-weight: 600;
+    }
+}
+
+// Desktop: hanya logo (tanpa tulisan ABSRENT), diperbesar dan di tengah
+.auth-panel .brand-logo {
+    @include media-breakpoint-up(lg) {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem !important;
+
+        span {
+            display: none;
+        }
+
+        img {
+            width: 104px;
+            height: auto;
+        }
+    }
+}
+
+.auth-back {
+    margin: 0;
+    font-size: 0.9rem;
+    text-align: center;
+
+    a {
+        color: var(--text-secondary);
+
+        &:hover {
+            color: var(--primary);
+        }
+    }
+}
+
+.auth-visual {
+    position: relative;
+    display: none;
+    overflow: hidden;
+    background-color: #0a1432;
+
+    // Menempel setinggi layar agar foto dan teks selalu terlihat penuh walau form (mis. daftar) lebih panjang dari layar
+    @include media-breakpoint-up(lg) {
+        display: block;
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+    }
+
+    // Lapisan gelap dari pojok kanan atas menjaga kontras teks di atas foto
+    .hero-slides::after {
+        background: linear-gradient(200deg, rgba(10, 20, 50, 0.62) 0%, rgba(10, 20, 50, 0.48) 30%, rgba(10, 20, 50, 0.15) 65%, rgba(10, 20, 50, 0) 90%);
+    }
+}
+
+.auth-visual-copy {
+    position: absolute;
+    top: 200px;
+    right: 3rem;
+    z-index: 3;
+    max-width: 30rem;
+    color: #fff;
+    text-align: right;
+    // Bayangan halus menggantikan sebagian gelapnya lapisan agar teks tetap jelas di atas langit terang
+    text-shadow: 0 1px 3px rgba(10, 20, 50, 0.5), 0 2px 16px rgba(10, 20, 50, 0.45);
+
+    h2 {
+        margin-bottom: 1.25rem;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+    }
+
+    ul {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.6rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.95rem;
+    }
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    i {
+        font-size: 1.15rem;
+    }
+}
+
+// Tombol tampil/sembunyi password (disisipkan oleh password-toggle.js)
+.password-field {
+    position: relative;
+
+    .form-control {
+        padding-right: 2.75rem;
+    }
+
+    // Ikon mata tidak ikut tertimpa ikon error validasi Bootstrap
+    .form-control.is-invalid {
+        background-image: none;
+    }
+}
+
+.password-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2.75rem;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-secondary);
+
+    &:hover {
+        color: var(--primary);
+    }
+}

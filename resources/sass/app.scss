@@ -19,6 +19,7 @@ $font-family-sans-serif:
     sans-serif;
 
 @import "bootstrap/scss/bootstrap";
+@import "bootstrap-icons/font/bootstrap-icons.css";
 
 // CSS variable global (dari ed-rent-admin-html/template-blade/tokens.css)
 :root {
@@ -44,6 +45,7 @@ a {
 // Satu komponen Blade = satu partial (nama sama).
 @import "components/brand";
 @import "layout/customer";
+@import "layout/auth";
 @import "layout/dashboard/dashboard-topbar";
 @import "layout/dashboard/dashboard-sidebar";
 @import "layout/dashboard/dashboard-main";

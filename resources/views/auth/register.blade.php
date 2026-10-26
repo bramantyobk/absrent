@@ -51,7 +51,7 @@
                 class="form-control" autocomplete="new-password" required>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Daftar</button>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-person-plus me-2" aria-hidden="true"></i>Daftar</button>
     </form>
 
     <p class="text-center text-body-secondary mt-4 mb-0">

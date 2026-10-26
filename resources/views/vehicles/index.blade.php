@@ -7,11 +7,11 @@
 
     <form method="GET" action="{{ route('vehicles.index') }}" class="filter-card mb-4">
         <div class="row g-2">
-            <div class="col-12 col-lg-4">
+            <div class="col-12 col-lg-6">
                 <label for="search" class="form-label small mb-1">Cari</label>
                 <input type="search" id="search" name="search" value="{{ $filters['search'] ?? '' }}" class="form-control" placeholder="Merek atau model">
             </div>
-            <div class="col-6 col-lg-2">
+            <div class="col-6 col-lg-3">
                 <label for="type" class="form-label small mb-1">Kategori</label>
                 <select id="type" name="type" class="form-select">
                     <option value="">Semua</option>
@@ -20,7 +20,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-lg-2">
+            <div class="col-6 col-lg-3">
                 <label for="drive_type" class="form-label small mb-1">Tipe</label>
                 <select id="drive_type" name="drive_type" class="form-select">
                     <option value="">Semua</option>
@@ -29,12 +29,11 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-lg-2">
-                <label for="start_at" class="form-label small mb-1">Mulai Sewa ({{ config('rental.timezone_label') }})</label>
-                <input type="datetime-local" id="start_at" name="start_at" value="{{ $filters['start_at'] ?? '' }}"
-                    class="form-control @error('start_at') is-invalid @enderror">
+            <div class="col-12 col-lg-6">
+                <x-datetime-field id="start_at" label="Mulai sewa" :value="$filters['start_at'] ?? ''" :timezone="config('rental.timezone_label')"
+                    :min-date="now()->format('Y-m-d')" :show-error="false" label-class="form-label small mb-1" show-return />
             </div>
-            <div class="col-6 col-lg-2">
+            <div class="col-12 col-lg-3">
                 <label for="days" class="form-label small mb-1">Durasi</label>
                 <select id="days" name="days" class="form-select @error('days') is-invalid @enderror">
                     <option value="">-</option>

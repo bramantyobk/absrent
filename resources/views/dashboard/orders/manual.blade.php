@@ -26,14 +26,10 @@
         <h3 class="card-heading fs-6">1. Periode sewa</h3>
         <p class="small text-body-secondary">Satu pesanan satu periode, maksimal {{ $maxVehicles }} kendaraan. Aturan bentrok, jeda, dan durasi sama dengan pesanan online.</p>
 
-        <form method="GET" action="{{ route('dashboard.orders.manual.create') }}" class="row g-2 align-items-end">
-            <div class="col-12 col-md-5">
-                <label for="start_at" class="form-label">Waktu mulai ({{ $timezoneLabel }})</label>
-                <input type="datetime-local" id="start_at" name="start_at" value="{{ $period['start_at'] ?? $defaultStart }}"
-                    class="form-control @error('start_at') is-invalid @enderror" required>
-                @error('start_at')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+        <form method="GET" action="{{ route('dashboard.orders.manual.create') }}" class="row g-2 align-items-start">
+            <div class="col-12 col-md-6">
+                <x-datetime-field id="start_at" label="Waktu mulai" :value="$period['start_at'] ?? $defaultStart" :timezone="$timezoneLabel"
+                    :min-date="now()->format('Y-m-d')" show-return required />
             </div>
             <div class="col-6 col-md-3">
                 <label for="days" class="form-label">Durasi</label>
@@ -43,7 +39,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-md-4">
+            <div class="col-6 col-md-3">
+                <span class="form-label d-none d-md-block invisible" aria-hidden="true">&nbsp;</span>
                 <button type="submit" class="btn btn-outline-primary w-100">Cari unit kosong</button>
             </div>
         </form>

@@ -12,6 +12,8 @@
     <body class="customer-body">
         <x-customer.navbar />
 
+        @yield('hero')
+
         <main class="container py-4 py-lg-5">
             @include('dashboard.users._alerts')
 

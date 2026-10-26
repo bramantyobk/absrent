@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Actions\Orders\CreateOrder;
 use App\Services\CheckoutCart;
-use App\Services\RentalQuote;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    public function show(CheckoutCart $cart, RentalQuote $rentalQuote): View
+    public function show(CheckoutCart $cart): View
     {
         $lines = $cart->lines();
         $first = $lines->first();
@@ -20,8 +19,8 @@ class CheckoutController extends Controller
             'lines' => $lines,
             'total' => $lines->sum('subtotal'),
             'hasInvalidLine' => $lines->contains(fn (array $line): bool => $line['error'] !== null),
-            'startLabel' => $first ? $rentalQuote->label($first['start_at']) : null,
-            'endLabel' => $first ? $rentalQuote->label($first['end_at']) : null,
+            'start' => $first['start_at'] ?? null,
+            'end' => $first['end_at'] ?? null,
             'days' => $first['days'] ?? null,
             'addVehicleUrl' => $first ? route('vehicles.index', ['start_at' => $first['start_at']->format('Y-m-d\TH:i'), 'days' => $first['days']]) : route('vehicles.index'),
             'canAddMore' => $cart->canAddMore(),

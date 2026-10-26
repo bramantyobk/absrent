@@ -91,6 +91,21 @@ class Order extends Model
     }
 
     /**
+     * Tahap progres pesanan untuk tampilan pelanggan (0 Dibuat, 1 Pembayaran, 2 Booking, 3 Disewa, 4 Selesai),
+     * atau null bila pesanan berakhir di luar alur normal (Dibatalkan, Gagal, Refund, Dicuri).
+     */
+    public function progressStep(): ?int
+    {
+        return match ($this->status) {
+            OrderStatus::Pending => 1,
+            OrderStatus::Booking => 2,
+            OrderStatus::Rented => 3,
+            OrderStatus::Completed => 4,
+            default => null,
+        };
+    }
+
+    /**
      * Pesanan manual dikenali dari `created_by` yang berbeda dari `user_id` (kosong dianggap sama dengan pelanggan).
      */
     public function isManual(): bool

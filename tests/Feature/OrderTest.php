@@ -63,3 +63,22 @@ it('forbids staff on the customer order pages', function () {
 it('redirects guests to the login page', function () {
     $this->get(route('orders.show', customerOrder(User::factory()->create())))->assertRedirect(route('login'));
 });
+
+it('labels the statuses and writes dates with the full weekday and month', function () {
+    $customer = User::factory()->create();
+    $order = customerOrder($customer, ['code' => 'ABS-LABEL001']);
+    $order->items()->update(['start_at' => '2026-10-27 09:00:00', 'end_at' => '2026-10-28 09:00:00']);
+
+    $this->actingAs($customer)->get(route('orders.index'))
+        ->assertOk()
+        ->assertSee('Status pesanan')
+        ->assertSee('Pembayaran')
+        ->assertSee('Selasa, 27 Oktober 2026 pukul 09:00 WIB')
+        ->assertSee('Rabu, 28 Oktober 2026 pukul 09:00 WIB');
+
+    $this->get(route('orders.show', $order))
+        ->assertOk()
+        ->assertSee('Status pesanan')
+        ->assertSee('Pembayaran')
+        ->assertSeeInOrder(['Selasa, 27 Oktober 2026', 'pukul 09:00 WIB', 'Rabu, 28 Oktober 2026', 'pukul 09:00 WIB']);
+});

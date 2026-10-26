@@ -48,15 +48,59 @@
     }
 }
 
-.customer-hero {
-    padding: 2rem 1.25rem;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #eaf0ff 0%, #fff 70%);
-    border: 1px solid var(--divider);
+// Tombol navbar (keranjang dan akun) selalu selebar dan setinggi sama
+.customer-navbar .customer-nav-btn {
+    height: 44px;
+    padding-block: 0;
 
     @include media-breakpoint-up(lg) {
-        padding: 3.5rem 3rem;
+        width: 11rem;
     }
+}
+
+.customer-hero {
+    position: relative;
+    padding: 3rem 0;
+    color: #fff;
+    background-color: #0a1432;
+
+    @include media-breakpoint-up(lg) {
+        padding: 6rem 0;
+    }
+}
+
+// Slideshow latar (dekoratif); lapisan gelap dari kiri menjaga kontras teks di atas foto
+.hero-slides {
+    position: absolute;
+    inset: 0;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2; // di atas slide aktif (carousel-fade memberi z-index 1)
+        background: linear-gradient(90deg, rgba(10, 20, 50, 0.9) 0%, rgba(10, 20, 50, 0.72) 55%, rgba(10, 20, 50, 0.45) 100%);
+    }
+}
+
+.hero-slide {
+    height: 100%;
+    background-size: cover;
+    background-position: 70% center;
+    background-repeat: no-repeat;
+}
+
+.hero-slide-1 {
+    background-image: url("/images/hero-1.webp");
+}
+
+.hero-slide-2 {
+    background-image: url("/images/hero-2.webp");
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
 }
 
 .customer-hero-title {
@@ -66,12 +110,21 @@
     letter-spacing: -0.5px;
 
     @include media-breakpoint-up(lg) {
-        font-size: 2.5rem;
+        font-size: 2.75rem;
     }
 }
 
+.hero-search {
+    max-width: 54rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background-color: #fff;
+    color: var(--text-dark);
+    box-shadow: var(--card-shadow);
+}
+
 .customer-hero-text {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 1.5rem;
     max-width: 38rem;
 }
@@ -115,6 +168,55 @@
     margin-bottom: 0.75rem;
 }
 
+.perk-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    height: 100%;
+    padding: 1rem 1.25rem;
+    background-color: #fff;
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+}
+
+.perk-icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background-color: #eaf0ff;
+    color: var(--primary);
+    font-size: 1.35rem;
+}
+
+.perk-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.1rem;
+}
+
+.cta-banner {
+    padding: 2.5rem 1.25rem;
+    border-radius: 16px;
+    color: #fff;
+    text-align: center;
+    background:
+        linear-gradient(rgba(10, 20, 50, 0.7), rgba(10, 20, 50, 0.7)),
+        url("/images/hero-1.webp") center / cover no-repeat;
+
+    @include media-breakpoint-up(lg) {
+        padding: 4rem 3rem;
+    }
+}
+
+.cta-banner-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
 .step-title {
     font-size: 1rem;
     font-weight: 700;
@@ -133,7 +235,15 @@
 
 .footer-heading {
     font-weight: 700;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.customer-footer a:not(.btn) {
+    color: var(--text-secondary);
+
+    &:hover {
+        color: var(--primary);
+    }
 }
 
 .footer-hours {
@@ -160,26 +270,58 @@
     border-radius: 12px;
     box-shadow: var(--card-shadow-sm);
     overflow: hidden;
-    transition: box-shadow 0.15s ease;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
 
-    &:hover {
-        box-shadow: var(--card-shadow);
+    // Efek hover hanya untuk perangkat dengan kursor (desktop), bukan layar sentuh
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            transform: translateY(-4px);
+            border-color: rgba(53, 99, 233, 0.35);
+            box-shadow: 0 12px 28px rgba(53, 99, 233, 0.15);
+
+            .vehicle-card-media img {
+                transform: scale(1.05);
+            }
+
+            .vehicle-card-title a {
+                color: var(--primary);
+            }
+        }
+    }
+
+    &:focus-within {
+        border-color: var(--primary);
     }
 
     @media (prefers-reduced-motion: reduce) {
-        transition: none;
+        &,
+        &:hover {
+            transform: none;
+            transition: none;
+        }
+
+        &:hover .vehicle-card-media img {
+            transform: none;
+        }
     }
 }
 
 .vehicle-card-media {
     display: block;
     aspect-ratio: 16 / 10;
-    background-color: var(--bg-page);
+    background-color: #fff;
+    overflow: hidden;
 
+    // contain agar foto berbagai resolusi dan rasio tampil utuh dan seragam
     img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
+        padding: 0.5rem;
+        transition: transform 0.35s ease;
     }
 }
 
@@ -208,7 +350,8 @@
 
 .vehicle-card-price {
     strong {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
+        color: var(--primary);
     }
 
     span {
@@ -231,10 +374,11 @@
 .vehicle-hero-photo {
     width: 100%;
     aspect-ratio: 16 / 10;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 0.5rem;
     border-radius: 12px;
     border: 1px solid var(--divider);
-    background-color: var(--bg-page);
+    background-color: #fff;
 }
 
 .spec-list {
@@ -299,6 +443,786 @@
     }
 }
 
+// Detail pesanan: foto lebih besar di desktop
+.order-line-lg .order-line-photo {
+    @include media-breakpoint-up(md) {
+        width: 9rem;
+        height: 6.75rem;
+    }
+}
+
+// Bagian atas detail pesanan: satu section berwarna sesuai status (--tone, latar, dan garis tepi)
+$order-tones: (
+    "pending": (#b45309, #fff8ec, #fbe3b8),
+    "booking": (#3563e9, #eef3ff, #d3e0ff),
+    "rented": (#15803d, #ecfaf0, #c4ecd1),
+    "completed": (#0f766e, #ecf8f6, #bfe7e0),
+    "cancelled": (#c2410c, #fff2ec, #ffd8c6),
+    "failed": (#c2410c, #fff2ec, #ffd8c6),
+    "stolen": (#c2410c, #fff2ec, #ffd8c6),
+    "refunded": (#6d28d9, #f5f0ff, #dccdfb),
+);
+
+.order-hero {
+    --tone: var(--primary);
+    padding: 1.25rem;
+    border: 1px solid var(--divider);
+    border-left-width: 6px;
+    border-radius: 12px;
+    border-color: var(--tone);
+    background-color: #fff;
+
+    @include media-breakpoint-up(md) {
+        padding: 1.25rem 1.75rem;
+    }
+}
+
+@each $status, $tone in $order-tones {
+    .order-hero-#{$status} {
+        --tone: #{nth($tone, 1)};
+        background-color: #{nth($tone, 2)};
+        border-color: #{nth($tone, 3)};
+        border-left-color: #{nth($tone, 1)};
+    }
+}
+
+// Baris judul section: judul di kiri, tahapan di tengah (layar lebar), chip atau tombol di kanan.
+// Di bawah lg tahapan turun ke baris sendiri di bawah judul.
+.order-hero-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+
+    > .order-steps {
+        order: 3;
+        flex: 1 0 100%;
+        max-width: none;
+        margin-top: 0.5rem;
+
+        @include media-breakpoint-up(md) {
+            max-width: 30rem;
+        }
+
+        @include media-breakpoint-up(lg) {
+            order: 0;
+            flex: 1 1 18rem;
+            max-width: 26rem;
+            margin: 0 auto;
+        }
+
+        @include media-breakpoint-up(xl) {
+            max-width: 34rem;
+        }
+    }
+}
+
+.order-hero-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tone);
+}
+
+.order-hero-code {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.15rem;
+
+    @include media-breakpoint-up(md) {
+        font-size: 2.25rem;
+    }
+}
+
+.order-hero-muted {
+    color: var(--text-secondary);
+}
+
+.order-hero-tone {
+    color: var(--tone);
+}
+
+.order-hero-hint {
+    margin-bottom: 0;
+    padding: 0.65rem 0.9rem;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+// Tombol putih di atas section berwarna: border tipis sewarna status agar tepinya jelas
+.order-hero-btn {
+    border: 1px solid var(--tone);
+    color: var(--tone);
+    font-weight: 600;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--tone);
+        background-color: var(--tone);
+        color: #fff;
+    }
+}
+
+.order-hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+// Chip putih: keterangan kecil di atas, badge status di bawah
+.order-hero-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    min-width: 8.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: var(--card-shadow-sm);
+}
+
+.order-hero-chip-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+// Satu card besar untuk rincian pesanan: kendaraan di kiri, ringkasan pembayaran di panel kanan, strip bantuan di dasar
+.order-detail {
+    overflow: hidden;
+    background-color: #fff;
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow-sm);
+}
+
+.order-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    @include media-breakpoint-up(lg) {
+        grid-template-columns: minmax(0, 1fr) 22rem;
+    }
+}
+
+.order-detail-main {
+    padding: 1.25rem;
+
+    @include media-breakpoint-up(md) {
+        padding: 1.5rem;
+    }
+}
+
+.order-detail-side {
+    padding: 1.25rem;
+    background-color: #f8faff;
+    border-top: 1px solid var(--divider);
+
+    @include media-breakpoint-up(lg) {
+        padding: 1.5rem;
+        border-top: 0;
+        border-left: 1px solid var(--divider);
+    }
+}
+
+.order-side-section + .order-side-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--divider);
+}
+
+// Rincian seperti struk: baris per kendaraan, lalu total
+.order-receipt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+
+    > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+
+        span:first-child {
+            color: var(--text-secondary);
+        }
+
+        span:last-child {
+            white-space: nowrap;
+        }
+    }
+}
+
+.order-receipt-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--text-muted);
+
+    strong {
+        font-size: 1.6rem;
+        letter-spacing: -0.5px;
+    }
+}
+
+.order-detail-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid var(--divider);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    @include media-breakpoint-up(md) {
+        padding: 0.85rem 1.5rem;
+    }
+}
+
+// Kendaraan pada detail pesanan: foto, chip, subtotal di kanan, dan panel jadwal Mulai ke Kembali
+.order-vehicle {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    + .order-vehicle {
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--divider);
+    }
+
+    @include media-breakpoint-up(md) {
+        flex-direction: row;
+    }
+}
+
+.order-vehicle-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #eef3ff 0%, #fff 80%);
+
+    img {
+        width: 100%;
+        height: 7rem;
+        object-fit: contain;
+    }
+
+    @include media-breakpoint-up(md) {
+        align-self: flex-start;
+        width: 12rem;
+        padding: 1rem;
+
+        img {
+            height: 8rem;
+        }
+    }
+}
+
+.order-vehicle-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-vehicle-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.1rem;
+}
+
+.order-vehicle-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    strong {
+        font-size: 1.25rem;
+        color: var(--primary);
+    }
+
+    span {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    @include media-breakpoint-up(md) {
+        align-items: flex-end;
+        text-align: right;
+    }
+}
+
+.order-vehicle-schedule {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background-color: #f4f7ff;
+
+    > div {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+
+        strong {
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+    }
+
+    // Kolom detail menyempit di lg (kartu ringkasan di samping), jadi berdampingan hanya di md dan xl ke atas
+    @include media-breakpoint-only(md) {
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+    }
+
+    @include media-breakpoint-up(xl) {
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+    }
+}
+
+.order-vehicle-when {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.order-vehicle-arrow {
+    justify-self: center; // tanpa ini kotak ikon selebar baris dan terlempar saat diputar
+    color: var(--text-muted);
+    transform: rotate(90deg);
+
+    @include media-breakpoint-only(md) {
+        transform: none;
+    }
+
+    @include media-breakpoint-up(xl) {
+        transform: none;
+    }
+}
+
+// Halaman pembayaran: langkah singkat, pilihan rekening berupa kartu, dan ringkasan pesanan
+.pay-howto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0;
+    font-size: 0.9rem;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #eaf0ff;
+        color: var(--primary);
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    @include media-breakpoint-up(xl) {
+        flex-direction: row;
+        gap: 1.5rem;
+    }
+}
+
+.bank-option {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    background-color: #fff;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+
+    &:hover {
+        border-color: rgba(53, 99, 233, 0.45);
+    }
+
+    // Kartu rekening terpilih berubah biru
+    &:has(input:checked) {
+        border-color: var(--primary);
+        background-color: #eef3ff;
+        box-shadow: 0 0 0 3px rgba(53, 99, 233, 0.12);
+    }
+
+    input {
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin: 0;
+    }
+
+    // Layar kecil: ikon disembunyikan dan tombol Salin pindah ke baris sendiri agar nomor rekening tidak tertimpa
+    @include media-breakpoint-down(sm) {
+        flex-wrap: wrap;
+
+        .bank-option-icon {
+            display: none;
+        }
+
+        .btn {
+            flex-basis: 100%;
+        }
+    }
+}
+
+.bank-option-icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background-color: #eaf0ff;
+    color: var(--primary);
+    font-size: 1.3rem;
+}
+
+.bank-option-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.bank-option-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pay-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pay-item-photo {
+    flex: none;
+    width: 5.5rem;
+    height: 4rem;
+    object-fit: contain;
+    border-radius: 8px;
+    background: linear-gradient(160deg, #eef3ff 0%, #fff 80%);
+}
+
+// Halaman syarat dan ketentuan: ringkasan, dokumen, dan persetujuan dalam satu card
+.terms-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem 1.5rem;
+    padding: 1rem 1.25rem;
+    background-color: #f8faff;
+    border-bottom: 1px solid var(--divider);
+
+    > div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        font-size: 0.9rem;
+    }
+
+    @include media-breakpoint-up(md) {
+        grid-template-columns: 1.2fr 1.6fr 1fr;
+        padding: 1rem 1.5rem;
+    }
+}
+
+.terms-summary-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+// Teks dokumen dibatasi lebarnya agar nyaman dibaca; baris baru pada isi template tetap dipertahankan
+.terms-document {
+    max-width: 52rem;
+    margin-inline: auto;
+    padding: 1.5rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+
+    h2 {
+        margin: 1.75rem 0 0.5rem;
+        padding-left: 0.75rem;
+        border-left: 3px solid var(--primary);
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    // Judul pertama menjadi judul dokumen
+    h2:first-child {
+        margin-top: 0;
+        padding: 0 0 0.75rem;
+        border-left: 0;
+        border-bottom: 1px solid var(--divider);
+        font-size: 1.25rem;
+    }
+
+    p {
+        margin-bottom: 0.75rem;
+        white-space: pre-line;
+        color: var(--text-secondary);
+    }
+
+    @include media-breakpoint-up(md) {
+        padding: 2rem 1.5rem;
+    }
+}
+
+.terms-consent {
+    padding: 1.25rem;
+    background-color: #f8faff;
+    border-top: 1px solid var(--divider);
+
+    @include media-breakpoint-up(md) {
+        padding: 1.5rem;
+    }
+}
+
+// Seluruh baris persetujuan bisa diketuk; berubah biru saat dicentang
+.terms-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    background-color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+
+    input {
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin: 0.1rem 0 0;
+    }
+
+    &:has(input:checked) {
+        border-color: var(--primary);
+        background-color: #eef3ff;
+    }
+}
+
+// Checkout: jadwal di dalam section berwarna tampil pada panel putih
+.order-hero .order-vehicle-schedule {
+    background-color: #fff;
+
+    // Selebar section, jadi cukup lega untuk berdampingan mulai md
+    @include media-breakpoint-up(md) {
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+    }
+}
+
+.order-hero .order-vehicle-arrow {
+    @include media-breakpoint-up(md) {
+        transform: none;
+    }
+}
+
+.order-vehicle-invalid {
+    padding: 1rem;
+    border: 1px solid #ffc8a6;
+    border-radius: 10px;
+    background-color: #fffaf6;
+}
+
+// Ajakan menambah kendaraan: blok bergaris putus-putus selebar kolom
+.order-add-vehicle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 1rem;
+    border: 2px dashed #b9c9f7;
+    border-radius: 12px;
+    background-color: #f8faff;
+    color: var(--primary);
+    font-weight: 600;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+
+    i {
+        font-size: 1.25rem;
+    }
+
+    small {
+        font-weight: 400;
+        color: var(--text-secondary);
+    }
+
+    &:hover {
+        border-color: var(--primary);
+        background-color: #eef3ff;
+        color: var(--primary);
+    }
+}
+
+// Mobile: total dan tombol menempel di bawah layar
+.checkout-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1rem -0.75rem -1.5rem;
+    padding: 0.75rem 1rem;
+    background-color: #fff;
+    border-top: 1px solid var(--divider);
+    box-shadow: 0 -4px 16px rgba(149, 157, 165, 0.15);
+
+    strong {
+        font-size: 1.25rem;
+    }
+}
+
+// Tahapan progres pesanan (Dibuat sampai Selesai)
+.order-steps {
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+
+        // Garis penghubung ke tahap sebelumnya
+        &:not(:first-child)::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            right: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: var(--divider);
+        }
+
+        &.is-done::before,
+        &.is-current::before {
+            background-color: var(--tone, var(--primary));
+        }
+
+        &.is-done,
+        &.is-current {
+            color: var(--text-dark);
+        }
+    }
+
+    // Desktop: tahapan dibuat kecil, rata kiri, dan tidak selebar section agar isi halaman lebih menonjol
+    @include media-breakpoint-up(md) {
+        max-width: 30rem;
+
+        li {
+            gap: 0.25rem;
+            font-size: 0.75rem;
+
+            &:not(:first-child)::before {
+                top: 13px;
+                height: 2px;
+            }
+
+            &.is-current .order-step-label {
+                font-weight: 700;
+            }
+        }
+    }
+}
+
+.order-step-dot {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--divider);
+    background-color: #fff;
+    font-weight: 700;
+
+    @include media-breakpoint-up(md) {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+        border-width: 2px;
+    }
+
+    .is-done & {
+        border-color: var(--tone, var(--primary));
+        background-color: var(--tone, var(--primary));
+        color: #fff;
+    }
+
+    .is-current & {
+        border-color: var(--tone, var(--primary));
+        color: var(--tone, var(--primary));
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone, var(--primary)) 20%, transparent);
+    }
+}
+
+.order-step-label {
+    font-weight: 600;
+}
+
 .order-line-invalid {
     border-color: #ffc8a6;
     background-color: #fffaf6;
@@ -307,9 +1231,10 @@
 .order-line-photo {
     width: 72px;
     height: 54px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 8px;
-    background-color: var(--bg-page);
+    background-color: #fff;
+    border: 1px solid var(--divider);
     flex-shrink: 0;
 
     @include media-breakpoint-up(sm) {
@@ -325,12 +1250,145 @@
 }
 
 .order-card {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     padding: 1rem;
     color: var(--text-dark);
+    transition:
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
 
     &:hover {
         box-shadow: var(--card-shadow);
+        border-color: rgba(53, 99, 233, 0.35);
+    }
+
+    // Desktop: foto dan info di kiri, total dan status rata kanan agar tidak ada ruang kosong
+    @include media-breakpoint-up(md) {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+    }
+}
+
+.order-card-photo {
+    width: 100%;
+    height: 6.5rem;
+    object-fit: contain;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    background-color: #fff;
+
+    @include media-breakpoint-up(md) {
+        flex: none;
+        align-self: center;
+        width: 10rem;
+        height: 7.5rem;
+    }
+}
+
+.order-card-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-card-side {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--divider);
+
+    @include media-breakpoint-up(md) {
+        flex: none;
+        align-items: flex-end;
+        min-width: 16rem;
+        padding: 0 0 0 1.5rem;
+        border-top: 0;
+        border-left: 1px solid var(--divider);
+        text-align: right;
+
+        .order-status {
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.4rem;
+        }
+    }
+}
+
+.order-card-total {
+    font-size: 1.25rem;
+}
+
+.order-card-link {
+    margin-top: auto;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.order-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+}
+
+.order-status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.order-status-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+// Pasangan label-nilai (Mulai/Kembali): label tetap lebar, nilai mengisi sisanya
+.order-meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.1rem 0.75rem;
+    margin-bottom: 0;
+
+    dt {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    dd {
+        margin: 0;
+    }
+}
+
+// Varian daftar pesanan: Mulai dan Kembali bertumpuk di mobile, berdampingan di layar lebar
+.order-meta-split {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    > div {
+        display: grid;
+        grid-template-columns: 4.5rem 1fr;
+        gap: 0.1rem 0.75rem;
+    }
+
+    @include media-breakpoint-up(xl) {
+        flex-direction: row;
+        gap: 2.5rem;
+
+        > div {
+            display: block;
+        }
+
+        dt {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
     }
 }
 

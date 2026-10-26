@@ -30,8 +30,7 @@ it('lets a customer request cancellation of a paid booking with a reason, leavin
 
     $this->actingAs($customer)
         ->post(route('orders.cancellation-request', $order), ['reason' => 'Jadwal perjalanan berubah.'])
-        ->assertRedirect(route('orders.show', $order))
-        ->assertSessionHas('status');
+        ->assertRedirectContains('https://wa.me/');
 
     $request = CancellationRequest::sole();
 
@@ -46,11 +45,13 @@ it('shows the request form on a paid booking and the request status afterwards',
     $customer = User::factory()->create();
     $order = paidBooking($customer);
 
-    $this->actingAs($customer)->get(route('orders.show', $order))->assertSee('Kirim pengajuan');
+    $this->actingAs($customer)->get(route('orders.show', $order))->assertSee('Ajukan Pembatalan')
+        ->assertSee('target="_blank" data-payment-confirm', false)
+        ->assertSee('data-after-url="'.route('orders.show', $order).'"', false);
 
     $this->post(route('orders.cancellation-request', $order), ['reason' => 'Jadwal perjalanan berubah.']);
 
-    $this->get(route('orders.show', $order))->assertDontSee('Kirim pengajuan')->assertSee('Pengajuan pembatalan: Menunggu');
+    $this->get(route('orders.show', $order))->assertDontSee('Ajukan Pembatalan')->assertSee('Pengajuan pembatalan: Menunggu')->assertSee(route('orders.cancellation-whatsapp', $order));
 });
 
 it('rejects a cancellation request before payment, once rented, with a pending request, or for another customer', function () {
@@ -178,4 +179,32 @@ it('forbids customers from deciding requests', function () {
     $this->actingAs($customer)->patch(route('dashboard.cancellation-requests.update', $request), ['decision' => 'approved', 'note' => 'Refund.'])->assertForbidden();
 
     expect($request->refresh()->status)->toBe(CancellationStatus::Pending);
+});
+
+it('redirects the cancellation request to the assigned operator WhatsApp with the order code and reason', function () {
+    $customer = User::factory()->create();
+    $operator = User::factory()->operator()->create(['phone' => '6281234567890']);
+    $order = paidBooking($customer, ['assigned_operator_id' => $operator->id]);
+
+    $response = $this->actingAs($customer)->post(route('orders.cancellation-request', $order), ['reason' => 'Jadwal perjalanan berubah.']);
+
+    $response->assertRedirectContains('https://wa.me/6281234567890?text=');
+
+    $text = urldecode(explode('?text=', $response->headers->get('Location'))[1]);
+
+    expect($text)->toContain($order->code)->toContain('Alasan: Jadwal perjalanan berubah.');
+});
+
+it('reopens WhatsApp only for a pending cancellation request of the own order', function () {
+    $customer = User::factory()->create();
+    $operator = User::factory()->operator()->create(['phone' => '6281234567890']);
+    $order = paidBooking($customer, ['assigned_operator_id' => $operator->id]);
+
+    $this->actingAs($customer)->get(route('orders.cancellation-whatsapp', $order))->assertNotFound();
+
+    $this->post(route('orders.cancellation-request', $order), ['reason' => 'Jadwal perjalanan berubah.']);
+
+    $this->get(route('orders.cancellation-whatsapp', $order))->assertRedirectContains('https://wa.me/6281234567890?text=');
+
+    $this->actingAs(User::factory()->create())->get(route('orders.cancellation-whatsapp', $order))->assertNotFound();
 });
