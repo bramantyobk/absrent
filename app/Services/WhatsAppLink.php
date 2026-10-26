@@ -33,6 +33,21 @@ class WhatsAppLink
     }
 
     /**
+     * Tautan pengajuan pembatalan ke operator pesanan, atau ke nomor support bila tidak ada operator. Null bila tidak
+     * ada nomor tujuan.
+     */
+    public function toCancellation(Order $order, CompanyProfile $company, string $reason): ?string
+    {
+        $number = $order->assignedOperator?->phone ?: $company->support_whatsapp;
+
+        if (blank($number)) {
+            return null;
+        }
+
+        return $this->make($number, "Halo, saya ingin mengajukan pembatalan pesanan {$order->code}.\nAlasan: {$reason}");
+    }
+
+    /**
      * Tautan `https://wa.me/<nomor>?text=<pesan>`. Nomor berformat 62... tanpa tanda plus, pesan di-encode URL.
      */
     public function make(string $number, string $message): string

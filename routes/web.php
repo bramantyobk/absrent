@@ -39,6 +39,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderCancellationController;
 use App\Http\Controllers\OrderCancellationRequestController;
+use App\Http\Controllers\OrderCancellationWhatsAppController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPaymentController;
 use App\Http\Controllers\OrderProofController;
@@ -75,6 +76,7 @@ Route::middleware(['auth', 'active', 'role:user'])->group(function () {
     Route::get('/orders/{order}/whatsapp', OrderWhatsAppController::class)->name('orders.whatsapp');
     Route::post('/orders/{order}/cancel', [OrderCancellationController::class, 'store'])->name('orders.cancel');
     Route::post('/orders/{order}/cancellation-request', [OrderCancellationRequestController::class, 'store'])->name('orders.cancellation-request');
+    Route::get('/orders/{order}/cancellation-whatsapp', OrderCancellationWhatsAppController::class)->name('orders.cancellation-whatsapp');
     Route::get('/orders/{order}/proof', OrderProofController::class)->name('orders.proof');
 });
 
