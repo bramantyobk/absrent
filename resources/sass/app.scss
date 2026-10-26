@@ -41,6 +41,12 @@ a {
     text-decoration: none;
 }
 
+// Paginasi dengan banyak halaman turun baris di layar sempit, bukan melebar melewati layar
+.pagination {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+}
+
 // Partial memakai mixin Bootstrap, jadi di-import setelah Bootstrap.
 // Satu komponen Blade = satu partial (nama sama).
 @import "components/brand";

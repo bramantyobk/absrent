@@ -36,7 +36,7 @@ class UpdateVehicleOdometerRequest extends FormRequest
                 'required',
                 'integer',
                 'max:9999999',
-                $this->user()->isAdmin() ? 'min:0' : "min:{$lastOdometer}",
+                $this->user()?->isAdmin() ? 'min:0' : "min:{$lastOdometer}",
             ],
             'note' => [Rule::requiredIf($isCorrection), 'nullable', 'string', 'max:500'],
         ];
