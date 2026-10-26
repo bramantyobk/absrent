@@ -36,7 +36,7 @@ it('rejects guests and customers on the staff order endpoints', function (string
 
 it('lists and filters orders for staff', function () {
     orderWithTransaction(['code' => 'ABS-APIONE01', 'user_id' => User::factory()->create(['name' => 'Budi Santoso'])]);
-    orderWithTransaction(['code' => 'ABS-APITWO02', 'status' => OrderStatus::Booking]);
+    orderWithTransaction(['code' => 'ABS-APITWO02', 'status' => OrderStatus::Booking, 'user_id' => User::factory()->create(['name' => 'Siti Aminah'])]);
     Sanctum::actingAs(User::factory()->operator()->create());
 
     $this->getJson(route('api.v1.dashboard.orders.index'))->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('data.0.code', 'ABS-APITWO02');
