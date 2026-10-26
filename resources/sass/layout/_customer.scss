@@ -371,48 +371,103 @@
 }
 
 // Detail kendaraan
-.vehicle-hero-photo {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: contain;
-    padding: 0.5rem;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background-color: #fff;
+// Detail kendaraan: satu card dengan foto, spesifikasi, dan perlengkapan di kiri, kartu pemesanan di panel kanan
+.vehicle-detail .order-detail-grid {
+    @include media-breakpoint-up(lg) {
+        grid-template-columns: minmax(0, 1fr) 25rem;
+    }
 }
 
-.spec-list {
-    dt {
-        font-weight: 600;
-        font-size: 0.85rem;
+.vehicle-gallery {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 14rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background: linear-gradient(160deg, #eef3ff 0%, #fff 80%);
+
+    @include media-breakpoint-up(md) {
+        height: 22rem;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.spec-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 0.75rem;
+}
+
+.spec-tile {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    background-color: #fff;
+
+    i {
+        grid-row: span 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background-color: #eaf0ff;
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    span {
+        font-size: 0.75rem;
         color: var(--text-muted);
     }
 
-    dd {
-        margin-bottom: 0.5rem;
+    strong {
+        font-size: 0.95rem;
     }
 }
 
-.equipment-list li {
-    display: flex;
-    justify-content: space-between;
-    max-width: 22rem;
-    padding: 0.35rem 0;
-    border-bottom: 1px dashed var(--divider);
-}
+.equip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 0.5rem 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 
-.booking-card {
-    @include media-breakpoint-up(lg) {
-        position: sticky;
-        top: 1.5rem;
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        background-color: #f8faff;
+        font-size: 0.9rem;
+    }
+
+    i {
+        color: var(--primary);
     }
 }
 
-.booking-price {
+.vehicle-price,
+.vehicle-price-inline {
     margin-bottom: 0.25rem;
 
     strong {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        letter-spacing: -0.5px;
+        color: var(--primary);
     }
 
     span {
@@ -420,14 +475,92 @@
     }
 }
 
-// Opsi durasi memuat hari dan tanggal pengembalian, jadi dibuat sedikit lebih kecil agar muat di layar 360px
-.booking-card .form-select {
-    font-size: 0.875rem;
+.vehicle-price-inline strong {
+    font-size: 1.4rem;
 }
 
+// Kartu pemesanan menempel saat halaman di-scroll di desktop
+.vehicle-booking {
+    @include media-breakpoint-up(lg) {
+        position: sticky;
+        top: 1.5rem;
+    }
+
+    // Opsi durasi memuat hari dan tanggal pengembalian, jadi dibuat sedikit lebih kecil agar muat di layar 360px
+    .form-select {
+        font-size: 0.875rem;
+    }
+}
+
+// Panel jadwal: kotak putih bergaris tegas dengan dua langkah bernomor (Mulai, Durasi)
+.booking-panel {
+    counter-reset: booking-step;
+    padding: 1rem;
+    border: 1px solid #b9c4da;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: var(--card-shadow-sm);
+
+    .form-control,
+    .form-select {
+        min-height: 46px;
+        border-color: #b9c4da;
+        background-color: #fff;
+
+        &:focus {
+            border-color: var(--primary);
+        }
+
+        &:disabled {
+            background-color: #f1f4fa;
+            color: var(--text-muted);
+        }
+    }
+}
+
+.booking-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-dark);
+
+    &::before {
+        counter-increment: booking-step;
+        content: counter(booking-step);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background-color: var(--primary);
+        color: #fff;
+        font-size: 0.75rem;
+    }
+}
+
+// Total terpilih ditampilkan sebagai baris biru muda agar jelas
 .quote-result {
-    min-height: 1.5rem;
     font-weight: 600;
+
+    &:not(:empty) {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-top: 0.25rem;
+        padding: 0.65rem 0.85rem;
+        border-radius: 10px;
+        background-color: #eef3ff;
+
+        strong {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+    }
 }
 
 // Pesanan dan checkout

@@ -19,11 +19,11 @@
 <div class="datetime-field" data-datetime-field data-tz="{{ $timezone }}" @if ($showReturn) data-show-return @endif>
     <label for="{{ $id }}_date" class="{{ $labelClass }}">{{ $label }}@if ($timezone) ({{ $timezone }})@endif</label>
     <div class="row g-2">
-        <div class="col-6">
+        <div class="col-7 col-sm-6">
             <input type="date" id="{{ $id }}_date" value="{{ $date }}" @if ($minDate) min="{{ $minDate }}" @endif
                 class="form-control @error($name) is-invalid @enderror" aria-label="Tanggal" @required($required) data-dt-date>
         </div>
-        <div class="col-6">
+        <div class="col-5 col-sm-6">
             <select class="form-select" aria-label="Jam (24 jam)" data-dt-time>
                 @for ($slot = 0; $slot < 48; $slot++)
                     @php($option = sprintf('%02d:%02d', intdiv($slot, 2), $slot % 2 * 30))
