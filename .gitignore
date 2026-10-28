@@ -34,3 +34,4 @@ PROJECT_BRIEF.md
 boost.json
 boost.lock
 implementation-log.md
+*.sql
